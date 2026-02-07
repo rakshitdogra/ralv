@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon – Research Tools Suite</title>
+    <meta name="description" content="This tool is currently under development. Coming soon.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚧</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Background -->
+<div class="background-gradient" id="interactiveGradient"></div>
+<canvas id="interactive-bg"
+        style="position: fixed; inset: 0; pointer-events: none; z-index: -1;"></canvas>
+
+<!-- Navigation -->
+<nav class="nav">
+    <div class="container nav-content">
+        <div class="nav-logo">
+            <img src="ralv.png" alt="ralv" width="70" height="70" class="invert-on-dark">
+        </div>
+        <div class="nav-actions">
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                </svg>
+                <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- Coming Soon Section -->
+<section class="hero" style="min-height: 90vh; display: flex; align-items: center;">
+    <div class="container">
+        <div class="hero-content" style="text-align: center;">
+            <div class="badge" style="margin: 0 auto 1.5rem;">
+                <span class="badge-dot"></span>
+                <span>Under Development</span>
+            </div>
+
+            <h1 class="hero-title">
+                The <br><span class="gradient-text">Paper Summary Studio</span> <br> Is Coming
+            </h1>
+
+            <p class="hero-description" style="max-width: 620px; margin: 0 auto;">
+                Building the next tool in the Research Tools Suite.
+                It will help you <strong>understand, summarize, and extract insights</strong>
+                from research papers faster than ever.
+            </p>
+
+            <div class="card"
+                 style="max-width: 520px; margin: 3rem auto 0; padding: 2.5rem;">
+                <h3 style="font-weight: 700; margin-bottom: 1rem;">
+                    What's to come ?
+                </h3>
+                <ul style="text-align: center; color: var(--muted-foreground); line-height: 1.8;">
+                    <p>• AI-powered paper summaries</p>
+                    <p>• Key contributions & limitations extraction</pli>
+                    <p>• Methodology & result highlights</p>
+                    <p>• Designed for students & researchers</p>
+                </ul>
+
+                <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="index.html" class="btn btn-primary">
+                        Back to Home
+                    </a>
+                    <a href="refcheck.html" class="btn btn-secondary">
+                        Explore RefCheck
+                    </a>
+                </div>
+            </div>
+
+            <p style="margin-top: 3rem; font-size: 0.875rem; color: var(--muted-foreground);">
+                No signup. No tracking. Always free for education.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <img src="ralv.png" alt="ralv" width="70" height="70" class="invert-on-dark">
+                <p>Professional research tools for academics and students worldwide</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Project RALV. Made with ☕ by Rakshit Dogra</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Theme + Gradient Script -->
+<script>
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    html.setAttribute('data-theme', savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+        const newTheme = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
+
+    const gradient = document.getElementById('interactiveGradient');
+    let x = 50, y = 50;
+
+    document.addEventListener('mousemove', e => {
+        x = (e.clientX / window.innerWidth) * 100;
+        y = (e.clientY / window.innerHeight) * 100;
+        gradient.style.background = `
+            radial-gradient(circle at ${x}% ${y}%, rgba(102,126,234,0.08), transparent 50%),
+            radial-gradient(circle at ${100-x}% ${100-y}%, rgba(118,75,162,0.08), transparent 50%)
+        `;
+    });
+</script>
+
+</body>
+</html>

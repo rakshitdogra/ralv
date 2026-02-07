@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Tools Suite - RefCheck, RefUnlocker & PolyViz</title>
+    <meta name="description" content="Professional research tools for academics and researchers">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔬</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Navigation Links Styling */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 1rem;
+        }
+        
+        .nav-link {
+            padding: 0.5rem 1rem;
+            color: var(--foreground);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            position: relative;
+            white-space: nowrap;
+        }
+        
+        .nav-link:hover {
+            background: var(--secondary);
+            color: var(--gradient-1);
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 80%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gradient-1), var(--gradient-2));
+            transition: transform 0.2s ease;
+        }
+        
+        .nav-link:hover::after {
+            transform: translateX(-50%) scaleX(1);
+        }
+        
+        .nav-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--foreground);
+            cursor: pointer;
+            padding: 0.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .mobile-menu-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem;
+            z-index: 999;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Tool Cards Mobile Responsive */
+        .tool-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        .tool-card-content {
+            padding: 3rem;
+        }
+
+        .tool-card-visual {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .nav-content {
+                justify-content: space-between;
+            }
+
+            .nav-logo span {
+                display: none;
+            }
+
+            .nav-logo img {
+                width: 50px;
+                height: 50px;
+            }
+
+            .hero-title {
+                font-size: 2rem !important;
+            }
+
+            .hero-description {
+                font-size: 1rem !important;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                width: 100%;
+                gap: 0.75rem;
+            }
+
+            .hero-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Tool Cards Mobile */
+            .tool-card {
+                grid-template-columns: 1fr !important;
+            }
+
+            .tool-card-visual {
+                display: none !important;
+            }
+
+            .tool-card-content {
+                padding: 2rem !important;
+            }
+
+            /* Stats Grid */
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            /* Features Grid */
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* CTA Section */
+            .cta-card {
+                padding: 2rem !important;
+            }
+
+            .cta-card h2 {
+                font-size: 1.75rem !important;
+            }
+
+            .cta-actions {
+                flex-direction: column !important;
+                width: 100%;
+            }
+
+            .cta-actions .btn {
+                width: 100%;
+            }
+
+            /* Footer */
+            .footer-content {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
+        }
+        
+        /* Tablet and small desktop */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .nav-link {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.8125rem;
+            }
+
+            .tool-card-content {
+                padding: 2rem !important;
+            }
+
+            .tool-card-visual {
+                padding: 2rem !important;
+            }
+
+            .hero-title {
+                font-size: 2.5rem !important;
+            }
+        }
+
+        /* Performance optimizations */
+        #interactive-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            will-change: transform;
+        }
+
+        .background-gradient {
+            will-change: background;
+            transition: background 0.1s ease-out;
+        }
+
+        /* Disable animations on mobile for better performance */
+        @media (max-width: 768px) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            #interactive-bg {
+                display: none;
+            }
+
+            .background-gradient {
+                background: radial-gradient(circle at 50% 50%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
+                            radial-gradient(circle at 50% 50%, rgba(118, 75, 162, 0.05) 0%, transparent 50%) !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Gradient -->
+    <div class="background-gradient" id="interactiveGradient"></div>
+    <canvas id="interactive-bg"></canvas>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container nav-content">
+            <div class="nav-logo">
+                <img src="ralv.png" alt="ralv" width="70" height="70" class="invert-on-dark">
+                <span></span>
+            </div>
+            <div class="nav-actions">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="nav-links">
+                    <a href="refcheck.html" class="nav-link">RefCheck</a>
+                    <a href="index.html" class="nav-link">RefUnlocker</a>
+                    <a href="polyviz.html" class="nav-link">PolyViz</a>
+                    <a href="soon.html" class="nav-link">PaperSummaryStudio</a>
+                </div>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="refcheck.html" class="nav-link">RefCheck</a>
+        <a href="index.html" class="nav-link">RefUnlocker</a>
+        <a href="polyviz.html" class="nav-link">PolyViz</a>
+        <a href="soon.html" class="nav-link">PaperSummaryStudio</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="badge">
+                    <span class="badge-dot"></span>
+                    <span>Professional Research Tools</span>
+                </div>
+                <h1 class="hero-title">
+                    Streamline Your <span class="gradient-text">Research Workflow</span>
+                </h1>
+                <p class="hero-description">
+                    A comprehensive suite of tools designed for researchers, academics, and students. Manage references, access papers, and visualize data—all in one place.
+                </p>
+                <div class="hero-actions">
+                    <a href="#tools" class="btn btn-primary btn-large">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                        </svg>
+                        Explore Tools
+                    </a>
+                    <a href="#features" class="btn btn-secondary btn-large">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section style="padding: 3rem 0;">
+        <div class="container">
+            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                <div style="text-align: center; padding: 2rem; background: var(--card); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow);">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--gradient-1); margin-bottom: 0.5rem;">3 + 1</div>
+                    <div style="font-size: 0.875rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.05em;">Tools</div>
+                </div>
+                <div style="text-align: center; padding: 2rem; background: var(--card); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow);">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--gradient-2); margin-bottom: 0.5rem;">100%</div>
+                    <div style="font-size: 0.875rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.05em;">Server Uptime</div>
+                </div>
+                <div style="text-align: center; padding: 2rem; background: var(--card); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow);">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--success); margin-bottom: 0.5rem;">∞</div>
+                    <div style="font-size: 0.875rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.05em;">Unlimited Use</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tools Section -->
+    <section class="features-section" id="tools">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Research Tools</h2>
+                <p>Everything you need for modern academic research</p>
+            </div>
+            
+            <div style="display: grid; gap: 2rem; margin-top: 3rem;">
+                <!-- RefCheck -->
+                <div class="card tool-card" style="padding: 0; overflow: hidden; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow)'">
+                    <div class="tool-card-content">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 12px; margin-bottom: 1.5rem;">
+                            <img src="refcheck.png" alt="RefCheck" width="75" height="75">
+                        </div>
+                        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--foreground);">RefCheck</h3>
+                        <p style="color: var(--muted-foreground); line-height: 1.6; margin-bottom: 2rem;">
+                            Verify and validate academic references with ease. Check DOIs, analyze citations, and ensure your bibliography is accurate and complete.
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem;">
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">DOI Validation</span>
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">Citation Check</span>
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">Metadata Lookup</span>
+                        </div>
+                        <a href="refcheck.html" class="btn btn-primary">
+                            Launch RefCheck
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+                    <div class="tool-card-visual">
+                        <img src="refcheck.png" alt="RefCheck visualization" width="275" height="275" style="opacity: 0.6;">
+                    </div>
+                </div>
+
+                <!-- RefUnlocker -->
+                <div class="card tool-card" style="padding: 0; overflow: hidden; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow)'">
+                    <div class="tool-card-visual" style="background: linear-gradient(135deg, rgba(13, 141, 220, 0.1), rgba(93, 11, 245, 0.1));">
+                        <img src="refunlocker.png" alt="RefUnlocker visualization" width="375" height="375" style="opacity: 0.6;">
+                    </div>
+                    <div class="tool-card-content">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 12px; margin-bottom: 1.5rem;">
+                            <img src="refunlocker.png" alt="RefUnlocker" width="95" height="95">
+                        </div>
+                        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--foreground);">RefUnlocker</h3>
+                        <p style="color: var(--muted-foreground); line-height: 1.6; margin-bottom: 2rem;">
+                            Access academic papers with DOI-to-Sci-Hub integration. Unlock research papers for educational purposes and support open access to knowledge.
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem;">
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">DOI to Access</span>
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">Paper Titles</span>
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">Batch Processing</span>
+                        </div>
+                        <a href="index.html" class="btn btn-primary">
+                            Launch RefUnlocker
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- PolyViz -->
+                <div class="card tool-card" style="padding: 0; overflow: hidden; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow)'">
+                    <div class="tool-card-content">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 12px; margin-bottom: 1.5rem;">
+                            <img src="polyviz.png" alt="PolyViz" width="60" height="65" style="filter: drop-shadow(0 4px 8px rgba(50, 50, 50, 0.218));">
+                        </div>
+                        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--foreground);">PolyViz</h3>
+                        <p style="color: var(--muted-foreground); line-height: 1.6; margin-bottom: 2rem;">
+                            Create publication-ready visualizations for your research. Generate charts, graphs, and plots with customizable styles perfect for academic papers.
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem;">
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">8+ Chart Types</span>
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">Export PNG/CSV</span>
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">Custom Styles</span>
+                        </div>
+                        <a href="polyviz.html" class="btn btn-primary">
+                            Launch PolyViz
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+                    <div class="tool-card-visual">
+                        <img src="polyviz.png" alt="PolyViz visualization" width="275" height="300" style="opacity: 0.6;">
+                    </div>
+                </div>
+
+                <!-- PaperSummaryStudio -->
+                <div class="card tool-card" style="padding: 0; overflow: hidden; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow)'">
+                    <div class="tool-card-visual" style="background: linear-gradient(135deg, rgba(13, 141, 220, 0.1), rgba(93, 11, 245, 0.1));">
+                        <img src="papersummarystudio.png" alt="Paper Summary Studio visualization" width="245" height="245" style="opacity: 0.6; filter:drop-shadow(0 10px 18px rgba(114,91,190,.28)) drop-shadow(0 18px 30px rgba(209,138,109,.28)) drop-shadow(0 26px 42px rgba(230,128,68,.28));">
+                    </div>
+                    <div class="tool-card-content">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 12px; margin-bottom: 1.5rem;">
+                            <img src="papersummarystudio.png" alt="Paper Summary Studio" width="55" height="55" style="filter:drop-shadow(0 10px 18px rgba(114,91,190,.28)) drop-shadow(0 18px 30px rgba(209,138,109,.28)) drop-shadow(0 26px 42px rgba(230,128,68,.28));">
+                        </div>
+                        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--foreground);">Paper Summary Studio</h3>
+                        <p style="color: var(--muted-foreground); line-height: 1.6; margin-bottom: 2rem;">
+                            Create research summaries at a fingertips, helps you quickly understand research papers by turning PDFs into clear, structured summaries.
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem;">
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">DOI to Access</span>
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">Paper Titles</span>
+                            <span style="padding: 0.375rem 0.875rem; background: var(--secondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">Batch Processing</span>
+                        </div>
+                        <a href="soon.html" class="btn btn-primary">
+                            Coming Soon!
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why Choose Our Tools?</h2>
+                <p>Built by researchers, for researchers</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <h3>Privacy First</h3>
+                    <p>No data collection, no tracking. Your research stays private and secure.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Always Available</h3>
+                    <p>24/7 access to all tools with no downtime or maintenance windows.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                        </svg>
+                    </div>
+                    <h3>Lightning Fast</h3>
+                    <p>Optimized performance for quick results and smooth workflows.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                        </svg>
+                    </div>
+                    <h3>Responsive Design</h3>
+                    <p>Works perfectly on desktop, tablet, and mobile devices.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                        </svg>
+                    </div>
+                    <h3>No Installation</h3>
+                    <p>Browser-based tools that work instantly without downloads.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="16 18 22 12 16 6"></polyline>
+                            <polyline points="8 6 2 12 8 18"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Open Source</h3>
+                    <p>Free and open for the academic community to use and improve.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section style="padding: 6rem 0; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));">
+        <div class="container">
+            <div class="card cta-card" style="padding: 4rem; text-align: center; background: var(--card); border: 1px solid var(--border);">
+                <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; color: var(--foreground);">Ready to Get Started?</h2>
+                <p style="font-size: 1.125rem; color: var(--muted-foreground); max-width: 600px; margin: 0 auto 2rem;">
+                    Choose the tool that fits your research needs and start working smarter today.
+                </p>
+                <div class="cta-actions" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="refcheck.html" class="btn btn-primary btn-large">
+                        Try RefCheck
+                    </a>
+                    <a href="index.html" class="btn btn-primary btn-large">
+                        Try RefUnlocker
+                    </a>
+                    <a href="polyviz.html" class="btn btn-primary btn-large">
+                        Try PolyViz
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="nav-logo" style="margin-bottom: 0.75rem;">
+                        <img src="ralv.png" alt="ralv" width="70" height="70" class="invert-on-dark">
+                        <span></span>
+                    </div>
+                    <p>Professional research tools for academics and students worldwide</p>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <a href="#" style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--foreground); transition: all 0.2s;" onmouseover="this.style.background='var(--secondary)'" onmouseout="this.style.background='transparent'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 Research Tools Suite. For educational purposes only.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.remove('active');
+            }
+        });
+
+        // Close mobile menu when clicking a link
+        mobileMenu.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+            });
+        });
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', currentTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const theme = html.getAttribute('data-theme');
+            const newTheme = theme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Interactive Gradient Background
+        const interactiveGradient = document.getElementById('interactiveGradient');
+        let mouseX = 50;
+        let mouseY = 50;
+        let currentX = 50;
+        let currentY = 50;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX / window.innerWidth * 100;
+            mouseY = e.clientY / window.innerHeight * 100;
+        });
+
+        function animateGradient() {
+            const speed = 0.05;
+            currentX += (mouseX - currentX) * speed;
+            currentY += (mouseY - currentY) * speed;
+
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            const opacity1 = isDark ? '0.08' : '0.05';
+            const opacity2 = isDark ? '0.08' : '0.05';
+            
+            interactiveGradient.style.background = `
+                radial-gradient(circle at ${currentX}% ${currentY}%, rgba(102, 126, 234, ${opacity1}) 0%, transparent 50%),
+                radial-gradient(circle at ${100 - currentX}% ${100 - currentY}%, rgba(118, 75, 162, ${opacity2}) 0%, transparent 50%)
+            `;
+
+            requestAnimationFrame(animateGradient);
+        }
+
+        animateGradient();
+
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                mouseX = e.touches[0].clientX / window.innerWidth * 100;
+                mouseY = e.touches[0].clientY / window.innerHeight * 100;
+            }
+        });
+
+        // Optimized Canvas Animation
+        const canvas = document.getElementById('interactive-bg');
+        const ctx = canvas.getContext('2d', { alpha: true });
+        let particles = [];
+        let waves = [];
+        let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        let targetMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        let animationId;
+        let lastTime = Date.now();
+        const targetFPS = 60;
+        const frameInterval = 1000 / targetFPS;
+
+        // Check if device is mobile
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isLowPerformance = isMobile || window.innerWidth < 768;
+
+        // Adjust particle count based on device
+        const particleCount = isLowPerformance ? 30 : 90;
+        const maxConnections = isLowPerformance ? 50 : 150;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Throttled mouse movement
+        let mouseMoveTimeout;
+        document.addEventListener('mousemove', (e) => {
+            if (!mouseMoveTimeout) {
+                mouseMoveTimeout = setTimeout(() => {
+                    targetMouse.x = e.clientX;
+                    targetMouse.y = e.clientY;
+                    mouseMoveTimeout = null;
+                }, 16); // ~60fps
+            }
+            
+            if (!isLowPerformance && Math.random() > 0.92) {
+                waves.push(new Wave(e.clientX, e.clientY));
+            }
+        });
+
+        function updateMouse() {
+            mouse.x += (targetMouse.x - mouse.x) * 0.1;
+            mouse.y += (targetMouse.y - mouse.y) * 0.1;
+        }
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.size = Math.random() * 2.5 + 1;
+                this.baseSize = this.size;
+                this.speedX = Math.random() * 0.4 - 0.2;
+                this.speedY = Math.random() * 0.4 - 0.2;
+                this.opacity = Math.random() * 0.5 + 0.3;
+                this.baseOpacity = this.opacity;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (!isLowPerformance) {
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const maxDistance = 180;
+
+                    if (distance < maxDistance) {
+                        const force = (maxDistance - distance) / maxDistance;
+                        const angle = Math.atan2(dy, dx);
+                        this.speedX -= Math.cos(angle) * force * 0.06;
+                        this.speedY -= Math.sin(angle) * force * 0.06;
+                        this.size = this.baseSize * (1 + force * 2.5);
+                        this.opacity = Math.min(this.baseOpacity * (1 + force * 1.5), 1);
+                    } else {
+                        this.size += (this.baseSize - this.size) * 0.1;
+                        this.opacity += (this.baseOpacity - this.opacity) * 0.1;
+                    }
+                }
+
+                this.speedX *= 0.97;
+                this.speedY *= 0.97;
+
+                if (this.x < -30) this.x = canvas.width + 30;
+                if (this.x > canvas.width + 30) this.x = -30;
+                if (this.y < -30) this.y = canvas.height + 30;
+                if (this.y > canvas.height + 30) this.y = -30;
+            }
+
+            draw() {
+                const theme = html.getAttribute('data-theme');
+                const colors = theme === 'dark' 
+                    ? ['147, 197, 253', '167, 139, 250', '129, 140, 248']
+                    : ['102, 126, 234', '118, 75, 162', '99, 102, 241'];
+                
+                const colorIndex = Math.floor((this.x / canvas.width) * colors.length) % colors.length;
+                
+                ctx.fillStyle = `rgba(${colors[colorIndex]}, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                if (!isLowPerformance) {
+                    const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 4);
+                    gradient.addColorStop(0, `rgba(${colors[colorIndex]}, ${this.opacity * 0.4})`);
+                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        class Wave {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 0;
+                this.maxRadius = 120;
+                this.speed = 3.5;
+                this.opacity = 0.5;
+                this.life = 1;
+            }
+
+            update() {
+                this.radius += this.speed;
+                this.opacity = (1 - this.radius / this.maxRadius) * 0.5;
+                this.life = 1 - this.radius / this.maxRadius;
+                this.speed *= 0.97;
+            }
+
+            draw() {
+                if (this.life <= 0) return;
+                
+                const theme = html.getAttribute('data-theme');
+                const color = theme === 'dark' ? '167, 139, 250' : '102, 126, 234';
+                
+                ctx.strokeStyle = `rgba(${color}, ${this.opacity})`;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        class GradientOrb {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.radius = Math.random() * 280 + 180;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.hue = Math.random() * 60 + 200;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (!isLowPerformance) {
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 350) {
+                        const force = (350 - distance) / 350;
+                        this.speedX += (dx / distance) * force * 0.025;
+                        this.speedY += (dy / distance) * force * 0.025;
+                    }
+                }
+
+                const maxSpeed = 1.8;
+                const speed = Math.sqrt(this.speedX ** 2 + this.speedY ** 2);
+                if (speed > maxSpeed) {
+                    this.speedX = (this.speedX / speed) * maxSpeed;
+                    this.speedY = (this.speedY / speed) * maxSpeed;
+                }
+
+                const padding = this.radius;
+                if (this.x < -padding) this.x = canvas.width + padding;
+                if (this.x > canvas.width + padding) this.x = -padding;
+                if (this.y < -padding) this.y = canvas.height + padding;
+                if (this.y > canvas.height + padding) this.y = -padding;
+            }
+
+            draw() {
+                const theme = html.getAttribute('data-theme');
+                const opacity = theme === 'dark' ? 0.12 : 0.07;
+                const pulse = Math.sin(Date.now() * 0.0008) * 0.25 + 1;
+                
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.radius * pulse
+                );
+                
+                gradient.addColorStop(0, `hsla(${this.hue}, 75%, 65%, ${opacity * pulse})`);
+                gradient.addColorStop(0.4, `hsla(${this.hue + 15}, 65%, 60%, ${opacity * 0.6})`);
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * pulse, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Initialize particles and orbs
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        const orbCount = isLowPerformance ? 2 : 4;
+        const orbs = [];
+        for (let i = 0; i < orbCount; i++) {
+            orbs.push(new GradientOrb());
+        }
+
+        function drawConnections() {
+            if (isLowPerformance) return;
+            
+            const theme = html.getAttribute('data-theme');
+            const color = theme === 'dark' ? '147, 197, 253' : '102, 126, 234';
+            let connectionCount = 0;
+            
+            for (let i = 0; i < particles.length && connectionCount < maxConnections; i++) {
+                for (let j = i + 1; j < particles.length && connectionCount < maxConnections; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const maxDistance = 140;
+
+                    if (distance < maxDistance) {
+                        const opacity = (1 - distance / maxDistance) * 0.25;
+                        ctx.strokeStyle = `rgba(${color}, ${opacity})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                        connectionCount++;
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            const currentTime = Date.now();
+            const deltaTime = currentTime - lastTime;
+
+            if (deltaTime >= frameInterval) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                updateMouse();
+
+                orbs.forEach(orb => {
+                    orb.update();
+                    orb.draw();
+                });
+
+                drawConnections();
+
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+
+                if (!isLowPerformance) {
+                    waves = waves.filter(wave => wave.life > 0);
+                    waves.forEach(wave => {
+                        wave.update();
+                        wave.draw();
+                    });
+                }
+
+                lastTime = currentTime - (deltaTime % frameInterval);
+            }
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Only start animation on desktop
+        if (!isLowPerformance) {
+            animate();
+        }
+
+        // Visibility handling
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                cancelAnimationFrame(animationId);
+            } else if (!isLowPerformance) {
+                animate();
+            }
+        });
+
+        // Click burst effect (desktop only)
+        if (!isLowPerformance) {
+            document.addEventListener('click', (e) => {
+                for (let i = 0; i < 18; i++) {
+                    const angle = (Math.PI * 2 * i) / 18;
+                    const speed = Math.random() * 4 + 2;
+                    const particle = new Particle(e.clientX, e.clientY);
+                    particle.speedX = Math.cos(angle) * speed;
+                    particle.speedY = Math.sin(angle) * speed;
+                    particle.opacity = 0.9;
+                    particles.push(particle);
+                }
+                waves.push(new Wave(e.clientX, e.clientY));
+                
+                if (particles.length > 250) {
+                    particles = particles.slice(-250);
+                }
+            });
+        }
+
+        // Touch support
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                targetMouse.x = e.touches[0].clientX;
+                targetMouse.y = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        if (!isLowPerformance) {
+            document.addEventListener('touchstart', (e) => {
+                if (e.touches.length > 0) {
+                    waves.push(new Wave(e.touches[0].clientX, e.touches[0].clientY));
+                }
+            }, { passive: true });
+        }
+    </script>
+</body>
+</html>
