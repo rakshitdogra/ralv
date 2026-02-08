@@ -5,6 +5,8 @@ let currentChart = null;
 let currentStyle = 'minimal';
 let customColors = ['#667eea', '#764ba2', '#10b981', '#f59e0b', '#9c27b0', '#00bcd4', '#795548', '#607d8b'];
 let useGradient = false;
+let chartTextColor = null; // null = auto (based on theme)
+let sortState = {}; // Track sorting state for each column
 
 // Theme Toggle
 const themeToggle = document.getElementById('themeToggle');
@@ -20,10 +22,26 @@ themeToggle.addEventListener('click', () => {
     html.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
     
+    // Redraw chart with new theme colors
     if (currentChart) {
         renderVisualization();
     }
 });
+
+// Get theme-appropriate text color
+function getTextColor() {
+    if (chartTextColor !== null) {
+        return chartTextColor;
+    }
+    const theme = html.getAttribute('data-theme');
+    return theme === 'dark' ? '#f0f0f0' : '#1a1a1a';
+}
+
+// Get theme-appropriate grid color
+function getGridColor() {
+    const theme = html.getAttribute('data-theme');
+    return theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+}
 
 // Sample datasets
 const sampleData = {
@@ -52,7 +70,8 @@ Method C,0.88,0.85`,
     table: `Model,Accuracy,Precision,Recall,F1-Score
 ResNet-50,0.923,0.918,0.925,0.921
 VGG-16,0.891,0.885,0.893,0.889
-EfficientNet,0.945,0.942,0.947,0.944`,
+EfficientNet,0.945,0.942,0.947,0.944
+MobileNet,0.878,0.872,0.881,0.876`,
     
     box: `{"Group A":[23,25,28,29,31,33,35,38,40,42],"Group B":[18,22,24,26,28,30,32,35,38,41],"Group C":[28,30,32,35,37,39,41,43,45,48]}`,
     
@@ -113,6 +132,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
+    // Text color picker
+    const textColorPicker = document.getElementById('text-color-picker');
+    if (textColorPicker) {
+        textColorPicker.addEventListener('input', (e) => {
+            chartTextColor = e.target.value;
+            if (currentChart) renderVisualization();
+        });
+    }
+    
+    // Auto color toggle
+    const autoColorToggle = document.getElementById('auto-text-color');
+    if (autoColorToggle) {
+        autoColorToggle.addEventListener('change', (e) => {
+            chartTextColor = e.target.checked ? null : document.getElementById('text-color-picker').value;
+            document.getElementById('text-color-picker').disabled = e.target.checked;
+            if (currentChart) renderVisualization();
+        });
+    }
+    
     // Load initial sample data
     loadSampleData();
 });
@@ -138,6 +176,7 @@ function loadData() {
         } else {
             currentData = JSON.parse(input);
         }
+        sortState = {}; // Reset sort state when loading new data
         renderVisualization();
     } catch (e) {
         errorEl.textContent = 'Error parsing data: ' + e.message;
@@ -255,11 +294,10 @@ function getStyleConfig() {
     return styles[currentStyle];
 }
 
-// Get chart options
+// Get chart options with theme-aware colors
 function getChartOptions() {
-    const isDark = document.body.getAttribute('data-theme') === 'dark';
-    const textColor = isDark ? '#e0e0e0' : '#222';
-    const gridColor = isDark ? '#333' : '#e0e0e0';
+    const textColor = getTextColor();
+    const gridColor = getGridColor();
     
     return {
         responsive: true,
@@ -417,13 +455,20 @@ function renderScatterPlot() {
     });
 }
 
-// Table
+// Table with proper sorting
 function renderTable() {
     const container = document.getElementById('table-container');
     let html = '<table id="table-display"><thead><tr>';
     
-    currentData.headers.forEach(h => {
-        html += `<th onclick="sortTable('${h}')">${h} ▲▼</th>`;
+    currentData.headers.forEach((h, idx) => {
+        const sortClass = sortState[idx] === 'asc' ? 'sort-asc' : sortState[idx] === 'desc' ? 'sort-desc' : '';
+        html += `<th class="${sortClass}" onclick="sortTable(${idx})">
+            ${h}
+            <span class="sort-indicator">
+                <span class="sort-arrow up"></span>
+                <span class="sort-arrow down"></span>
+            </span>
+        </th>`;
     });
     html += '</tr></thead><tbody>';
     
@@ -439,18 +484,38 @@ function renderTable() {
     container.innerHTML = html;
 }
 
-function sortTable(column) {
-    const isNumeric = !isNaN(currentData.data[0][column]);
+function sortTable(columnIndex) {
+    const column = currentData.headers[columnIndex];
+    
+    // Determine next sort direction
+    if (!sortState[columnIndex] || sortState[columnIndex] === 'desc') {
+        sortState[columnIndex] = 'asc';
+    } else {
+        sortState[columnIndex] = 'desc';
+    }
+    
+    const direction = sortState[columnIndex];
+    const isNumeric = typeof currentData.data[0][column] === 'number';
+    
+    // Sort data
     currentData.data.sort((a, b) => {
+        const valA = a[column];
+        const valB = b[column];
+        
+        let comparison = 0;
         if (isNumeric) {
-            return a[column] - b[column];
+            comparison = valA - valB;
+        } else {
+            comparison = String(valA).localeCompare(String(valB));
         }
-        return String(a[column]).localeCompare(String(b[column]));
+        
+        return direction === 'asc' ? comparison : -comparison;
     });
+    
     renderTable();
 }
 
-// Box Plot
+// Box Plot - Proper implementation
 function renderBoxPlot() {
     const canvas = document.getElementById('chart-canvas');
     canvas.style.display = 'block';
@@ -458,21 +523,80 @@ function renderBoxPlot() {
     
     const groups = Object.keys(currentData);
     
+    // Calculate box plot statistics for each group
+    const boxPlotData = groups.map(group => {
+        const values = currentData[group].sort((a, b) => a - b);
+        const q1Index = Math.floor(values.length * 0.25);
+        const q2Index = Math.floor(values.length * 0.5);
+        const q3Index = Math.floor(values.length * 0.75);
+        
+        return {
+            min: values[0],
+            q1: values[q1Index],
+            median: values[q2Index],
+            q3: values[q3Index],
+            max: values[values.length - 1]
+        };
+    });
+    
+    // Use Chart.js bar chart to visualize box plot components
+    const datasets = [
+        {
+            label: 'Min',
+            data: boxPlotData.map(d => d.min),
+            backgroundColor: getColor(0) + '40',
+            borderColor: getColor(0),
+            borderWidth: 1
+        },
+        {
+            label: 'Q1',
+            data: boxPlotData.map(d => d.q1),
+            backgroundColor: getColor(1) + '60',
+            borderColor: getColor(1),
+            borderWidth: 1
+        },
+        {
+            label: 'Median',
+            data: boxPlotData.map(d => d.median),
+            backgroundColor: getColor(2),
+            borderColor: getColor(2),
+            borderWidth: 2
+        },
+        {
+            label: 'Q3',
+            data: boxPlotData.map(d => d.q3),
+            backgroundColor: getColor(3) + '60',
+            borderColor: getColor(3),
+            borderWidth: 1
+        },
+        {
+            label: 'Max',
+            data: boxPlotData.map(d => d.max),
+            backgroundColor: getColor(4) + '40',
+            borderColor: getColor(4),
+            borderWidth: 1
+        }
+    ];
+    
     currentChart = new Chart(ctx, {
         type: 'bar',
-        data: { 
+        data: {
             labels: groups,
-            datasets: [{
-                label: 'Mean Value',
-                data: groups.map(g => {
-                    const vals = currentData[g];
-                    return vals.reduce((a, b) => a + b, 0) / vals.length;
-                }),
-                backgroundColor: groups.map((_, i) => getColor(i)),
-                borderWidth: getStyleConfig().barBorderWidth
-            }]
+            datasets: datasets
         },
-        options: getChartOptions()
+        options: {
+            ...getChartOptions(),
+            scales: {
+                ...getChartOptions().scales,
+                y: {
+                    ...getChartOptions().scales.y,
+                    title: {
+                        ...getChartOptions().scales.y.title,
+                        text: 'Value Distribution'
+                    }
+                }
+            }
+        }
     });
 }
 
@@ -490,6 +614,9 @@ function renderROC() {
         auc += (fpr[i] - fpr[i-1]) * (tpr[i] + tpr[i-1]) / 2;
     }
     
+    const textColor = getTextColor();
+    const gridColor = getGridColor();
+    
     currentChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -505,7 +632,7 @@ function renderROC() {
             }, {
                 label: 'Random Classifier',
                 data: [0, 1],
-                borderColor: '#999',
+                borderColor: textColor,
                 borderDash: [5, 5],
                 borderWidth: 1,
                 pointRadius: 0
@@ -514,8 +641,20 @@ function renderROC() {
         options: {
             ...getChartOptions(),
             scales: {
-                x: { title: { display: true, text: 'False Positive Rate' }, min: 0, max: 1 },
-                y: { title: { display: true, text: 'True Positive Rate' }, min: 0, max: 1 }
+                x: {
+                    title: { display: true, text: 'False Positive Rate', color: textColor },
+                    min: 0,
+                    max: 1,
+                    grid: { display: document.getElementById('show-grid').checked, color: gridColor },
+                    ticks: { color: textColor }
+                },
+                y: {
+                    title: { display: true, text: 'True Positive Rate', color: textColor },
+                    min: 0,
+                    max: 1,
+                    grid: { display: document.getElementById('show-grid').checked, color: gridColor },
+                    ticks: { color: textColor }
+                }
             }
         }
     });
@@ -529,6 +668,9 @@ function renderPR() {
     
     const recall = currentData.data.map(d => d[currentData.headers[0]]);
     const precision = currentData.data.map(d => d[currentData.headers[1]]);
+    
+    const textColor = getTextColor();
+    const gridColor = getGridColor();
     
     currentChart = new Chart(ctx, {
         type: 'line',
@@ -547,8 +689,20 @@ function renderPR() {
         options: {
             ...getChartOptions(),
             scales: {
-                x: { title: { display: true, text: 'Recall' }, min: 0, max: 1 },
-                y: { title: { display: true, text: 'Precision' }, min: 0, max: 1 }
+                x: {
+                    title: { display: true, text: 'Recall', color: textColor },
+                    min: 0,
+                    max: 1,
+                    grid: { display: document.getElementById('show-grid').checked, color: gridColor },
+                    ticks: { color: textColor }
+                },
+                y: {
+                    title: { display: true, text: 'Precision', color: textColor },
+                    min: 0,
+                    max: 1,
+                    grid: { display: document.getElementById('show-grid').checked, color: gridColor },
+                    ticks: { color: textColor }
+                }
             }
         }
     });
