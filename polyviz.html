@@ -26,15 +26,14 @@
     --card-foreground: #1f2937;
     --border: #e5e7eb;
     --input: #ffffff;
-    --muted: #f9fafb;
+    --muted: #f3f4f6;
     --muted-foreground: #6b7280;
-    --error: #ef4444;
     --success: #10b981;
-    --warning: #f59e0b;
+    --error: #ef4444;
 }
 
 [data-theme="dark"] {
-    --primary: #818cf8;
+    --primary: #667eea;
     --primary-foreground: #ffffff;
     --secondary: #1f2937;
     --secondary-foreground: #f9fafb;
@@ -48,12 +47,10 @@
     --input: #1f2937;
     --muted: #374151;
     --muted-foreground: #9ca3af;
-    --error: #f87171;
-    --success: #34d399;
-    --warning: #fbbf24;
+    --success: #10b981;
+    --error: #ef4444;
 }
 
-/* Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -65,26 +62,26 @@ body {
     background: var(--background);
     color: var(--foreground);
     line-height: 1.6;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
+    position: relative;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* Background Gradient */
 .background-gradient {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 400px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    z-index: -1;
+    height: 600px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.05) 100%);
     pointer-events: none;
+    z-index: 0;
 }
 
 [data-theme="dark"] .background-gradient {
-    background: linear-gradient(135deg, rgba(129, 140, 248, 0.05) 0%, rgba(167, 139, 250, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.02) 100%);
 }
 
-/* Container */
 .container {
     max-width: 1400px;
     margin: 0 auto;
@@ -98,19 +95,15 @@ body {
     z-index: 100;
     background: var(--card);
     border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(10px);
-    background-color: rgba(255, 255, 255, 0.8);
-}
-
-[data-theme="dark"] .nav {
-    background-color: rgba(31, 41, 55, 0.8);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
 }
 
 .nav-content {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.5rem;
+    align-items: center;
+    height: 64px;
 }
 
 .nav-logo {
@@ -118,27 +111,28 @@ body {
     align-items: center;
     gap: 0.75rem;
     font-size: 1.25rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--foreground);
+    text-decoration: none;
 }
 
 .nav-actions {
     display: flex;
-    align-items: center;
     gap: 1rem;
+    align-items: center;
 }
 
-/* Theme Toggle */
 .theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--secondary);
+    color: var(--foreground);
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--secondary);
-    cursor: pointer;
     transition: all 0.2s ease;
 }
 
@@ -147,27 +141,19 @@ body {
     border-color: var(--primary);
 }
 
-.theme-toggle .sun-icon {
+[data-theme="light"] .moon-icon {
     display: none;
 }
 
-.theme-toggle .moon-icon {
-    display: block;
-}
-
-[data-theme="dark"] .theme-toggle .sun-icon {
-    display: block;
-}
-
-[data-theme="dark"] .theme-toggle .moon-icon {
+[data-theme="dark"] .sun-icon {
     display: none;
 }
 
-/* Card */
+/* Cards */
 .card {
     background: var(--card);
-    border: 1px solid var(--border);
     border-radius: 12px;
+    border: 1px solid var(--border);
     padding: 1.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
@@ -178,9 +164,7 @@ body {
 }
 
 .card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    padding: 0;
 }
 
 /* Buttons */
@@ -189,12 +173,12 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border: none;
+    padding: 0.75rem 1.25rem;
     border-radius: 8px;
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
+    border: none;
     transition: all 0.2s ease;
     font-family: inherit;
 }
@@ -205,7 +189,7 @@ body {
 }
 
 .btn-primary:hover {
-    opacity: 0.9;
+    background: #5568d3;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
@@ -221,108 +205,6 @@ body {
     border-color: var(--primary);
 }
 
-/* Table Styles */
-#table-container {
-    width: 100%;
-    overflow-x: auto;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 1rem;
-}
-
-#table-display {
-    width: auto;
-    min-width: 500px;
-    max-width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 0.875rem;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--border);
-}
-
-#table-display thead {
-    background: var(--primary);
-    color: var(--primary-foreground);
-}
-
-#table-display th {
-    padding: 1rem;
-    text-align: left;
-    font-weight: 600;
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    transition: background-color 0.2s ease;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-#table-display th:hover {
-    background: rgba(0, 0, 0, 0.1);
-}
-
-#table-display th .sort-indicator {
-    display: inline-flex;
-    flex-direction: column;
-    margin-left: 0.5rem;
-    vertical-align: middle;
-    opacity: 0.5;
-}
-
-#table-display th.sort-asc .sort-indicator,
-#table-display th.sort-desc .sort-indicator {
-    opacity: 1;
-}
-
-#table-display th .sort-arrow {
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    margin: 1px 0;
-}
-
-#table-display th .sort-arrow.up {
-    border-bottom: 5px solid currentColor;
-}
-
-#table-display th .sort-arrow.down {
-    border-top: 5px solid currentColor;
-}
-
-#table-display th.sort-asc .sort-arrow.down {
-    opacity: 0.3;
-}
-
-#table-display th.sort-desc .sort-arrow.up {
-    opacity: 0.3;
-}
-
-#table-display tbody tr {
-    transition: background-color 0.2s ease;
-}
-
-#table-display tbody tr:nth-child(even) {
-    background: var(--muted);
-}
-
-#table-display tbody tr:hover {
-    background: var(--accent);
-}
-
-#table-display td {
-    padding: 0.875rem 1rem;
-    border-bottom: 1px solid var(--border);
-    color: var(--foreground);
-}
-
-#table-display tbody tr:last-child td {
-    border-bottom: none;
-}
-
 /* Footer */
 .footer {
     margin-top: 4rem;
@@ -334,14 +216,14 @@ body {
 .footer-content {
     display: flex;
     justify-content: space-between;
-    align-items: start;
+    align-items: flex-start;
     margin-bottom: 2rem;
 }
 
 .footer-brand p {
     color: var(--muted-foreground);
     font-size: 0.875rem;
-    line-height: 1.5;
+    margin-top: 0.5rem;
 }
 
 .footer-bottom {
@@ -355,46 +237,15 @@ body {
     font-size: 0.875rem;
 }
 
-/* Canvas Container */
-#canvas-container {
-    position: relative;
-    min-height: 500px;
-}
-
-#chart-canvas {
-    max-width: 100%;
-    height: auto;
-}
-
-#svg-container {
-    width: 100%;
-    height: 100%;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-    .nav-content {
-        padding: 0.75rem 1rem;
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
     }
     
-    .card {
-        padding: 1rem;
-    }
-}
-
-@media (max-width: 768px) {
     .footer-content {
         flex-direction: column;
         gap: 2rem;
-    }
-    
-    #table-display {
-        font-size: 0.75rem;
-    }
-    
-    #table-display th,
-    #table-display td {
-        padding: 0.625rem 0.75rem;
     }
 }
     </style>
@@ -407,7 +258,7 @@ body {
     <nav class="nav">
         <div class="container nav-content">
             <div class="nav-logo">
-                <img src="polyviz.png" alt="PolyViz" width="40" height="44" style="filter: drop-shadow(0 4px 8px rgba(6, 6, 6, 0.15));">
+                        <img src="polyviz.png" alt="ralv" width="40" height="44" style="filter: drop-shadow(0 4px 8px rgba(6, 6, 6, 0.15));">
                 <span>PolyViz</span>
             </div>
             <div class="nav-actions">
@@ -469,6 +320,12 @@ body {
                             <line x1="9" y1="21" x2="9" y2="9"></line>
                         </svg>
                         Table
+                    </button>
+                    <button class="viz-button" data-viz="box">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        </svg>
+                        Box Plot
                     </button>
                     <button class="viz-button" data-viz="roc">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -585,24 +442,15 @@ body {
                         </div>
                     </div>
 
-                    <!-- Text Color Customization -->
-                    <div style="padding-top: 1.5rem; border-top: 1px solid var(--border);">
-                        <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem;">Text Color</h3>
-                        <div style="margin-bottom: 1rem;">
-                            <label style="display: flex; align-items: center; gap: 0.625rem; cursor: pointer; padding: 0.5rem; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='var(--secondary)'" onmouseout="this.style.background='transparent'">
-                                <input type="checkbox" id="auto-text-color" checked style="width: 16px; height: 16px; margin: 0; cursor: pointer; accent-color: var(--primary);">
-                                <span style="font-size: 0.875rem; font-weight: 500; color: var(--foreground);">Auto (Theme-based)</span>
-                            </label>
-                        </div>
-                        <div style="display: flex; gap: 0.75rem; align-items: center;">
-                            <input type="color" id="text-color-picker" value="#1a1a1a" disabled style="width: 60px; height: 40px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); opacity: 0.5;">
-                            <span style="font-size: 0.875rem; color: var(--muted-foreground);">Custom text color</span>
-                        </div>
-                    </div>
-
                     <!-- Color Customization -->
                     <div style="padding-top: 1.5rem; border-top: 1px solid var(--border);">
-                        <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem;">Chart Colors</h3>
+                        <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem;">Colors</h3>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--foreground);">Text Color</label>
+                            <div style="text-align: center;">
+                                <input type="color" id="text-color" value="#000000" style="width: 100%; height: 40px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border);">
+                            </div>
+                        </div>
                         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
                             <div style="text-align: center;">
                                 <input type="color" class="color-input" value="#667eea" data-index="0" style="width: 100%; height: 40px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border);">
@@ -667,11 +515,11 @@ body {
             <div class="footer-content">
                 <div class="footer-brand">
                     <div class="nav-logo" style="margin-bottom: 0.75rem;">
-                        <img src="polyviz.png" alt="PolyViz" width="40" height="44" style="filter: drop-shadow(0 4px 8px rgba(6, 6, 6, 0.15));">
+                        <img src="polyviz.png" alt="ralv" width="40" height="44" style="filter: drop-shadow(0 4px 8px rgba(6, 6, 6, 0.15));">
                         <span>PolyViz</span>
                     </div>
                     <p>Professional data visualization tool for researchers and academics</p>
-                    <p style="margin-top: 0.5rem; font-weight: 600;">Version 1.13.0</p>
+                    <p style="margin-top: 0.5rem; font-weight: 600;">Version 1.12.4</p>
                 </div>
                 <div style="display: flex; gap: 1rem;">
                     <a href="https://www.chartjs.org/" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 0.5rem; color: var(--foreground); text-decoration: none; transition: color 0.2s;">
@@ -688,5 +536,197 @@ body {
     </footer>
 
     <script src="polyviz.js"></script>
+    
+    <style>
+        .viz-button {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--foreground);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        
+        .viz-button:hover {
+            background: var(--accent);
+            border-color: var(--primary);
+        }
+        
+        .viz-button.active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
+        
+        .viz-button svg {
+            flex-shrink: 0;
+        }
+        
+        .style-option {
+            padding: 0.75rem;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--foreground);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        
+        .style-option:hover {
+            background: var(--accent);
+            border-color: var(--primary);
+        }
+        
+        .style-option.active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
+        
+        .export-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 0.5rem;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--foreground);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        
+        .export-btn:hover {
+            background: var(--accent);
+            border-color: var(--primary);
+        }
+        
+        .data-table {
+            width: auto;
+            margin: 0 auto;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.875rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 0.875rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .data-table thead {
+            background: linear-gradient(to bottom, var(--secondary), var(--accent));
+        }
+        
+        .data-table th {
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background 0.2s;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            color: var(--foreground);
+        }
+        
+        .data-table th:hover {
+            background: var(--primary);
+            color: var(--primary-foreground);
+        }
+        
+        .data-table tbody tr {
+            transition: background 0.2s;
+        }
+        
+        .data-table tbody tr:hover {
+            background: var(--accent);
+        }
+        
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .sort-arrow {
+            display: inline-block;
+            margin-left: 8px;
+        }
+        
+        @media (max-width: 1024px) {
+            div[style*="grid-template-columns: 280px"] {
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            
+            .card[style*="position: sticky"] {
+                position: relative !important;
+                top: auto !important;
+            }
+        }
+        
+        /* Enhanced form controls */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem !important;
+        }
+        
+        [data-theme="dark"] select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            transition: all 0.2s ease;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        [data-theme="dark"] input[type="text"]:focus,
+        [data-theme="dark"] input[type="number"]:focus,
+        [data-theme="dark"] textarea:focus,
+        [data-theme="dark"] select:focus {
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        
+        input[type="checkbox"] {
+            cursor: pointer;
+        }
+    </style>
 </body>
 </html>
