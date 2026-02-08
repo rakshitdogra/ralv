@@ -1,110 +1,136 @@
-// PolyViz - Research Data Visualization Tool
 // Global state
-let currentChart = null;
+let currentViz = 'line';
 let currentData = null;
-let currentVizType = 'line';
+let currentChart = null;
 let currentStyle = 'minimal';
-let chartColors = ['#667eea', '#764ba2', '#10b981', '#f59e0b'];
-let textColor = '#000000'; // Default text color
+let customColors = ['#667eea', '#764ba2', '#10b981', '#f59e0b', '#9c27b0', '#00bcd4', '#795548', '#607d8b'];
+let useGradient = false;
 
-// Theme management
-function initTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateTextColorForTheme(savedTheme);
-}
+// Theme Toggle
+const themeToggle = document.getElementById('themeToggle');
+const html = document.documentElement;
 
-function updateTextColorForTheme(theme) {
-    // Set default text color based on theme
-    if (theme === 'dark') {
-        textColor = '#ffffff';
-    } else {
-        textColor = '#000000';
-    }
-    // Update text color input if it exists
-    const textColorInput = document.getElementById('text-color');
-    if (textColorInput) {
-        textColorInput.value = textColor;
-    }
-}
+const currentTheme = localStorage.getItem('theme') || 'light';
+html.setAttribute('data-theme', currentTheme);
 
-function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme');
-    const next = current === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
-    updateTextColorForTheme(next);
+themeToggle.addEventListener('click', () => {
+    const theme = html.getAttribute('data-theme');
+    const newTheme = theme === 'light' ? 'dark' : 'light';
     
-    // Redraw chart with new theme colors
-    if (currentChart || document.getElementById('svg-container').innerHTML || document.getElementById('table-container').innerHTML) {
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    if (currentChart) {
         renderVisualization();
     }
-}
-
-// Initialize theme on page load
-document.addEventListener('DOMContentLoaded', () => {
-    initTheme();
-    
-    // Theme toggle button
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', toggleTheme);
-    }
-    
-    // Visualization type buttons
-    document.querySelectorAll('.viz-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            document.querySelectorAll('.viz-button').forEach(b => b.classList.remove('active'));
-            button.classList.add('active');
-            currentVizType = button.dataset.viz;
-            if (currentData) {
-                renderVisualization();
-            }
-        });
-    });
-    
-    // Color inputs
-    document.querySelectorAll('.color-input').forEach(input => {
-        input.addEventListener('change', (e) => {
-            const index = parseInt(e.target.dataset.index);
-            chartColors[index] = e.target.value;
-        });
-    });
-    
-    // Text color input
-    const textColorInput = document.getElementById('text-color');
-    if (textColorInput) {
-        textColorInput.addEventListener('change', (e) => {
-            textColor = e.target.value;
-            if (currentChart || document.getElementById('svg-container').innerHTML || document.getElementById('table-container').innerHTML) {
-                renderVisualization();
-            }
-        });
-    }
-    
-    // Chart settings change listeners
-    ['chart-title', 'x-label', 'y-label', 'show-grid', 'show-legend', 'use-gradient'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('change', () => {
-                if (currentData) renderVisualization();
-            });
-        }
-    });
 });
 
-// Data loading functions
+// Sample datasets
+const sampleData = {
+    line: `Epoch,Training Loss,Validation Loss
+1,2.45,2.51
+2,1.89,2.03
+3,1.34,1.67
+4,0.98,1.45
+5,0.71,1.38
+6,0.52,1.35`,
+    
+    bar: `Method,Accuracy,F1-Score
+Baseline,0.72,0.68
+Method A,0.81,0.78
+Method B,0.85,0.82
+Method C,0.88,0.85`,
+    
+    scatter: `Feature 1,Feature 2,Class
+2.5,3.1,A
+3.2,4.5,A
+5.1,2.8,B
+6.3,4.2,B
+4.5,5.1,A
+7.2,3.5,B`,
+    
+    table: `Model,Accuracy,Precision,Recall,F1-Score
+ResNet-50,0.923,0.918,0.925,0.921
+VGG-16,0.891,0.885,0.893,0.889
+EfficientNet,0.945,0.942,0.947,0.944`,
+    
+    box: `{"Group A":[23,25,28,29,31,33,35,38,40,42],"Group B":[18,22,24,26,28,30,32,35,38,41],"Group C":[28,30,32,35,37,39,41,43,45,48]}`,
+    
+    roc: `FPR,TPR
+0.0,0.0
+0.05,0.45
+0.1,0.68
+0.15,0.79
+0.2,0.86
+0.3,0.92
+0.5,0.97
+1.0,1.0`,
+    
+    pr: `Recall,Precision
+0.0,1.0
+0.2,0.95
+0.4,0.90
+0.6,0.83
+0.8,0.72
+1.0,0.65`,
+    
+    ablation: `Component,Accuracy
+Full Model,0.923
+- Attention,0.891
+- Residual,0.878
+- BatchNorm,0.854
+None,0.812`
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    // Visualization buttons
+    document.querySelectorAll('.viz-button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.viz-button').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            currentViz = e.currentTarget.dataset.viz;
+            loadSampleData();
+        });
+    });
+    
+    // Gradient checkbox
+    document.getElementById('use-gradient').addEventListener('change', (e) => {
+        useGradient = e.target.checked;
+        if (currentChart) renderVisualization();
+    });
+    
+    // Live update listeners
+    ['chart-title', 'x-label', 'y-label'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+            if (currentChart) renderVisualization();
+        });
+    });
+    
+    ['show-grid', 'show-legend'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+            if (currentChart) renderVisualization();
+        });
+    });
+    
+    // Load initial sample data
+    loadSampleData();
+});
+
+// Load sample data
+function loadSampleData() {
+    document.getElementById('data-input').value = sampleData[currentViz] || '';
+    document.getElementById('data-format').value = currentViz === 'box' ? 'json' : 'csv';
+    loadData();
+}
+
+// Parse and load data
 function loadData() {
-    const format = document.getElementById('data-format').value;
     const input = document.getElementById('data-input').value.trim();
-    const errorDiv = document.getElementById('input-error');
+    const format = document.getElementById('data-format').value;
+    const errorEl = document.getElementById('input-error');
     
-    errorDiv.textContent = '';
-    
-    if (!input) {
-        errorDiv.textContent = 'Please enter data';
-        return;
-    }
+    errorEl.textContent = '';
     
     try {
         if (format === 'csv') {
@@ -112,13 +138,13 @@ function loadData() {
         } else {
             currentData = JSON.parse(input);
         }
-        
         renderVisualization();
-    } catch (error) {
-        errorDiv.textContent = `Error: ${error.message}`;
+    } catch (e) {
+        errorEl.textContent = 'Error parsing data: ' + e.message;
     }
 }
 
+// CSV parser
 function parseCSV(csv) {
     const lines = csv.trim().split('\n');
     const headers = lines[0].split(',').map(h => h.trim());
@@ -127,970 +153,531 @@ function parseCSV(csv) {
     for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(',').map(v => v.trim());
         const row = {};
-        headers.forEach((header, index) => {
-            const value = values[index];
-            row[header] = isNaN(value) ? value : parseFloat(value);
+        headers.forEach((h, idx) => {
+            const val = values[idx];
+            row[h] = isNaN(val) ? val : parseFloat(val);
         });
         data.push(row);
     }
     
-    return data;
+    return { headers, data };
 }
 
-function loadSampleData() {
-    const sampleData = {
-        line: `x,y1,y2,y3
-1,10,15,8
-2,15,12,10
-3,13,18,12
-4,18,14,15
-5,20,22,18
-6,25,20,22`,
-        bar: `category,value1,value2,value3
-A,45,30,25
-B,55,40,35
-C,40,50,30
-D,60,45,40
-E,50,35,45`,
-        scatter: `x,y,size
-10,20,5
-15,25,8
-20,15,6
-25,30,10
-30,18,7
-35,28,9
-40,22,8
-45,35,12`,
-        table: `Name,Age,Score,Grade
-Alice,25,95,A
-Bob,30,87,B
-Charlie,22,92,A
-Diana,28,78,C
-Eve,26,88,B`,
-        box: `group,value
-A,23
-A,25
-A,28
-A,30
-A,32
-A,35
-A,38
-B,18
-B,22
-B,25
-B,28
-B,30
-B,35
-B,40
-C,20
-C,24
-C,26
-C,29
-C,31
-C,33
-C,36`,
-        roc: `fpr,tpr,model
-0,0,Model A
-0.1,0.6,Model A
-0.2,0.75,Model A
-0.3,0.85,Model A
-0.5,0.92,Model A
-0.8,0.97,Model A
-1,1,Model A
-0,0,Model B
-0.1,0.5,Model B
-0.2,0.68,Model B
-0.3,0.78,Model B
-0.5,0.88,Model B
-0.8,0.95,Model B
-1,1,Model B`,
-        pr: `recall,precision,model
-0,1,Model A
-0.2,0.95,Model A
-0.4,0.9,Model A
-0.6,0.85,Model A
-0.8,0.75,Model A
-1,0.6,Model A
-0,1,Model B
-0.2,0.9,Model B
-0.4,0.85,Model B
-0.6,0.78,Model B
-0.8,0.68,Model B
-1,0.5,Model B`,
-        ablation: `component,accuracy,f1_score
-Baseline,0.75,0.72
-+Feature A,0.82,0.80
-+Feature B,0.85,0.83
-+Feature C,0.88,0.86
-Full Model,0.91,0.89`
-    };
-    
-    const sample = sampleData[currentVizType] || sampleData.line;
-    document.getElementById('data-input').value = sample;
-    document.getElementById('data-format').value = 'csv';
-    loadData();
+// Chart style management
+function setChartStyle(style) {
+    currentStyle = style;
+    document.querySelectorAll('.style-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.style === style);
+    });
+    if (currentChart) renderVisualization();
 }
 
-// Visualization rendering
+// Color management
+function applyColors() {
+    document.querySelectorAll('.color-input').forEach((input, idx) => {
+        customColors[idx] = input.value;
+    });
+    if (currentChart) renderVisualization();
+}
+
+function resetColors() {
+    const defaults = ['#667eea', '#764ba2', '#10b981', '#f59e0b', '#9c27b0', '#00bcd4', '#795548', '#607d8b'];
+    customColors = [...defaults];
+    document.querySelectorAll('.color-input').forEach((input, idx) => {
+        input.value = defaults[idx];
+    });
+    if (currentChart) renderVisualization();
+}
+
+function getColor(index) {
+    return customColors[index % customColors.length];
+}
+
+// Main rendering dispatcher
 function renderVisualization() {
-    if (!currentData) return;
+    document.getElementById('chart-canvas').style.display = 'none';
+    document.getElementById('svg-container').innerHTML = '';
+    document.getElementById('table-container').innerHTML = '';
     
-    // Clear previous visualizations
     if (currentChart) {
         currentChart.destroy();
         currentChart = null;
     }
-    document.getElementById('svg-container').innerHTML = '';
-    document.getElementById('table-container').innerHTML = '';
     
-    const canvas = document.getElementById('chart-canvas');
-    canvas.style.display = 'none';
-    
-    switch (currentVizType) {
-        case 'line':
-            renderLineChart();
-            break;
-        case 'bar':
-            renderBarChart();
-            break;
-        case 'scatter':
-            renderScatterChart();
-            break;
-        case 'table':
-            renderTable();
-            break;
-        case 'box':
-            renderBoxPlot();
-            break;
-        case 'roc':
-            renderROCCurve();
-            break;
-        case 'pr':
-            renderPRCurve();
-            break;
-        case 'ablation':
-            renderAblationStudy();
-            break;
+    switch (currentViz) {
+        case 'line': renderLineChart(); break;
+        case 'bar': renderBarChart(); break;
+        case 'scatter': renderScatterPlot(); break;
+        case 'table': renderTable(); break;
+        case 'box': renderBoxPlot(); break;
+        case 'roc': renderROC(); break;
+        case 'pr': renderPR(); break;
+        case 'ablation': renderAblation(); break;
     }
 }
 
-function getChartConfig() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const currentTextColor = textColor;
+// Style configurations
+function getStyleConfig() {
+    const styles = {
+        minimal: {
+            lineWidth: 2,
+            pointRadius: 3,
+            tension: 0.1,
+            barBorderWidth: 1,
+            scatterBorderWidth: 1,
+            scatterRadius: 6
+        },
+        classic: {
+            lineWidth: 3,
+            pointRadius: 5,
+            tension: 0.3,
+            barBorderWidth: 2,
+            scatterBorderWidth: 2,
+            scatterRadius: 8
+        },
+        modern: {
+            lineWidth: 3,
+            pointRadius: 0,
+            tension: 0.4,
+            barBorderWidth: 0,
+            scatterBorderWidth: 2,
+            scatterRadius: 10
+        },
+        bold: {
+            lineWidth: 4,
+            pointRadius: 6,
+            tension: 0,
+            barBorderWidth: 3,
+            scatterBorderWidth: 3,
+            scatterRadius: 10
+        }
+    };
+    return styles[currentStyle];
+}
+
+// Get chart options
+function getChartOptions() {
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#e0e0e0' : '#222';
+    const gridColor = isDark ? '#333' : '#e0e0e0';
     
     return {
-        title: document.getElementById('chart-title').value,
-        xLabel: document.getElementById('x-label').value,
-        yLabel: document.getElementById('y-label').value,
-        showGrid: document.getElementById('show-grid').checked,
-        showLegend: document.getElementById('show-legend').checked,
-        useGradient: document.getElementById('use-gradient').checked,
-        textColor: currentTextColor,
-        gridColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            title: {
+                display: true,
+                text: document.getElementById('chart-title').value,
+                font: { 
+                    size: currentStyle === 'bold' ? 18 : 16,
+                    family: 'Inter, sans-serif',
+                    weight: currentStyle === 'bold' ? 'bold' : '600' 
+                },
+                color: textColor,
+                padding: 20
+            },
+            legend: {
+                display: document.getElementById('show-legend').checked,
+                position: 'top',
+                labels: {
+                    font: { size: 12, family: 'Inter, sans-serif' },
+                    color: textColor,
+                    boxWidth: 12,
+                    padding: 15
+                }
+            }
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: document.getElementById('x-label').value,
+                    font: { size: 13, family: 'Inter, sans-serif', weight: '500' },
+                    color: textColor
+                },
+                grid: {
+                    display: document.getElementById('show-grid').checked,
+                    color: gridColor
+                },
+                ticks: {
+                    font: { size: 11, family: 'Inter, sans-serif' },
+                    color: textColor
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: document.getElementById('y-label').value,
+                    font: { size: 13, family: 'Inter, sans-serif', weight: '500' },
+                    color: textColor
+                },
+                grid: {
+                    display: document.getElementById('show-grid').checked,
+                    color: gridColor
+                },
+                ticks: {
+                    font: { size: 11, family: 'Inter, sans-serif' },
+                    color: textColor
+                }
+            }
+        }
     };
 }
 
+// Line Chart
 function renderLineChart() {
     const canvas = document.getElementById('chart-canvas');
     canvas.style.display = 'block';
     const ctx = canvas.getContext('2d');
-    const config = getChartConfig();
     
-    const labels = currentData.map(d => d.x || d[Object.keys(d)[0]]);
-    const datasets = [];
-    
-    const keys = Object.keys(currentData[0]).filter(k => k !== 'x' && k !== Object.keys(currentData[0])[0]);
-    
-    keys.forEach((key, index) => {
-        datasets.push({
-            label: key,
-            data: currentData.map(d => d[key]),
-            borderColor: chartColors[index % chartColors.length],
-            backgroundColor: config.useGradient 
-                ? createGradient(ctx, chartColors[index % chartColors.length])
-                : chartColors[index % chartColors.length] + '20',
-            tension: 0.4,
-            fill: config.useGradient,
-            borderWidth: 2
-        });
+    const labels = currentData.data.map(d => d[currentData.headers[0]]);
+    const datasets = currentData.headers.slice(1).map((header, idx) => {
+        const baseColor = getColor(idx);
+        return {
+            label: header,
+            data: currentData.data.map(d => d[header]),
+            borderColor: baseColor,
+            backgroundColor: useGradient ? function(context) {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+                if (!chartArea) return baseColor + '40';
+                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                gradient.addColorStop(0, baseColor + '10');
+                gradient.addColorStop(1, baseColor + '80');
+                return gradient;
+            } : 'transparent',
+            fill: useGradient,
+            borderWidth: getStyleConfig().lineWidth,
+            pointRadius: getStyleConfig().pointRadius,
+            pointBackgroundColor: baseColor,
+            tension: getStyleConfig().tension
+        };
     });
     
     currentChart = new Chart(ctx, {
         type: 'line',
         data: { labels, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                title: {
-                    display: !!config.title,
-                    text: config.title,
-                    color: config.textColor,
-                    font: { size: 18, weight: 'bold' }
-                },
-                legend: {
-                    display: config.showLegend,
-                    labels: { color: config.textColor }
-                }
-            },
-            scales: {
-                x: {
-                    title: {
-                        display: !!config.xLabel,
-                        text: config.xLabel,
-                        color: config.textColor
-                    },
-                    ticks: { color: config.textColor },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    }
-                },
-                y: {
-                    title: {
-                        display: !!config.yLabel,
-                        text: config.yLabel,
-                        color: config.textColor
-                    },
-                    ticks: { color: config.textColor },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    }
-                }
-            }
-        }
+        options: getChartOptions()
     });
 }
 
+// Bar Chart
 function renderBarChart() {
     const canvas = document.getElementById('chart-canvas');
     canvas.style.display = 'block';
     const ctx = canvas.getContext('2d');
-    const config = getChartConfig();
     
-    const labels = currentData.map(d => d.category || d[Object.keys(d)[0]]);
-    const datasets = [];
-    
-    const keys = Object.keys(currentData[0]).filter(k => k !== 'category' && k !== Object.keys(currentData[0])[0]);
-    
-    keys.forEach((key, index) => {
-        datasets.push({
-            label: key,
-            data: currentData.map(d => d[key]),
-            backgroundColor: chartColors[index % chartColors.length],
-            borderColor: chartColors[index % chartColors.length],
-            borderWidth: 1
-        });
+    const labels = currentData.data.map(d => d[currentData.headers[0]]);
+    const datasets = currentData.headers.slice(1).map((header, idx) => {
+        const baseColor = getColor(idx);
+        return {
+            label: header,
+            data: currentData.data.map(d => d[header]),
+            backgroundColor: useGradient ? function(context) {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+                if (!chartArea) return baseColor;
+                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                gradient.addColorStop(0, baseColor + '80');
+                gradient.addColorStop(1, baseColor);
+                return gradient;
+            } : baseColor,
+            borderWidth: getStyleConfig().barBorderWidth
+        };
     });
     
     currentChart = new Chart(ctx, {
         type: 'bar',
         data: { labels, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                title: {
-                    display: !!config.title,
-                    text: config.title,
-                    color: config.textColor,
-                    font: { size: 18, weight: 'bold' }
-                },
-                legend: {
-                    display: config.showLegend,
-                    labels: { color: config.textColor }
-                }
-            },
-            scales: {
-                x: {
-                    title: {
-                        display: !!config.xLabel,
-                        text: config.xLabel,
-                        color: config.textColor
-                    },
-                    ticks: { color: config.textColor },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    }
-                },
-                y: {
-                    title: {
-                        display: !!config.yLabel,
-                        text: config.yLabel,
-                        color: config.textColor
-                    },
-                    ticks: { color: config.textColor },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    }
-                }
-            }
-        }
+        options: getChartOptions()
     });
 }
 
-function renderScatterChart() {
+// Scatter Plot
+function renderScatterPlot() {
     const canvas = document.getElementById('chart-canvas');
     canvas.style.display = 'block';
     const ctx = canvas.getContext('2d');
-    const config = getChartConfig();
     
-    const datasets = [{
-        label: 'Data Points',
-        data: currentData.map(d => ({
-            x: d.x || d[Object.keys(d)[0]],
-            y: d.y || d[Object.keys(d)[1]]
-        })),
-        backgroundColor: chartColors[0],
-        borderColor: chartColors[0],
-        pointRadius: currentData.map(d => d.size || 5),
-        pointHoverRadius: currentData.map(d => (d.size || 5) + 2)
-    }];
+    const classes = [...new Set(currentData.data.map(d => d[currentData.headers[2]]))];
+    const datasets = classes.map((cls, idx) => ({
+        label: cls,
+        data: currentData.data
+            .filter(d => d[currentData.headers[2]] === cls)
+            .map(d => ({ x: d[currentData.headers[0]], y: d[currentData.headers[1]] })),
+        backgroundColor: getColor(idx),
+        borderWidth: getStyleConfig().scatterBorderWidth,
+        pointRadius: getStyleConfig().scatterRadius
+    }));
     
     currentChart = new Chart(ctx, {
         type: 'scatter',
         data: { datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                title: {
-                    display: !!config.title,
-                    text: config.title,
-                    color: config.textColor,
-                    font: { size: 18, weight: 'bold' }
-                },
-                legend: {
-                    display: config.showLegend,
-                    labels: { color: config.textColor }
-                }
-            },
-            scales: {
-                x: {
-                    title: {
-                        display: !!config.xLabel,
-                        text: config.xLabel,
-                        color: config.textColor
-                    },
-                    ticks: { color: config.textColor },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    }
-                },
-                y: {
-                    title: {
-                        display: !!config.yLabel,
-                        text: config.yLabel,
-                        color: config.textColor
-                    },
-                    ticks: { color: config.textColor },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    }
-                }
-            }
-        }
+        options: getChartOptions()
     });
 }
 
+// Table
 function renderTable() {
     const container = document.getElementById('table-container');
-    container.style.display = 'block';
+    let html = '<table id="table-display"><thead><tr>';
     
-    if (!currentData || currentData.length === 0) return;
-    
-    const headers = Object.keys(currentData[0]);
-    
-    let html = '<div style="display: flex; justify-content: center;"><table id="table-display" class="data-table">';
-    html += '<thead><tr>';
-    
-    headers.forEach((header, index) => {
-        html += `<th onclick="sortTable(${index})" style="cursor: pointer; position: relative; padding-right: 30px;">
-            ${header}
-            <span class="sort-arrow" data-column="${index}" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3;">
-                    <polyline points="18 15 12 9 6 15"></polyline>
-                </svg>
-            </span>
-        </th>`;
+    currentData.headers.forEach(h => {
+        html += `<th onclick="sortTable('${h}')">${h} ▲▼</th>`;
     });
-    
     html += '</tr></thead><tbody>';
     
-    currentData.forEach(row => {
+    currentData.data.forEach(row => {
         html += '<tr>';
-        headers.forEach(header => {
-            html += `<td>${row[header]}</td>`;
+        currentData.headers.forEach(h => {
+            html += `<td>${row[h]}</td>`;
         });
         html += '</tr>';
     });
     
-    html += '</tbody></table></div>';
+    html += '</tbody></table>';
     container.innerHTML = html;
 }
 
-// Table sorting function
-let sortDirection = {};
-
-function sortTable(columnIndex) {
-    if (!currentData) return;
-    
-    const headers = Object.keys(currentData[0]);
-    const header = headers[columnIndex];
-    
-    // Toggle sort direction
-    sortDirection[columnIndex] = sortDirection[columnIndex] === 'asc' ? 'desc' : 'asc';
-    const direction = sortDirection[columnIndex];
-    
-    // Sort data
-    currentData.sort((a, b) => {
-        let aVal = a[header];
-        let bVal = b[header];
-        
-        // Handle numeric values
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-            return direction === 'asc' ? aVal - bVal : bVal - aVal;
+function sortTable(column) {
+    const isNumeric = !isNaN(currentData.data[0][column]);
+    currentData.data.sort((a, b) => {
+        if (isNumeric) {
+            return a[column] - b[column];
         }
-        
-        // Handle string values
-        aVal = String(aVal).toLowerCase();
-        bVal = String(bVal).toLowerCase();
-        
-        if (direction === 'asc') {
-            return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-        } else {
-            return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
-        }
+        return String(a[column]).localeCompare(String(b[column]));
     });
-    
-    // Update arrow indicators
-    document.querySelectorAll('.sort-arrow').forEach(arrow => {
-        arrow.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3;">
-            <polyline points="18 15 12 9 6 15"></polyline>
-        </svg>`;
-    });
-    
-    const currentArrow = document.querySelector(`.sort-arrow[data-column="${columnIndex}"]`);
-    if (direction === 'asc') {
-        currentArrow.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="18 15 12 9 6 15"></polyline>
-        </svg>`;
-    } else {
-        currentArrow.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>`;
-    }
-    
-    // Re-render table
     renderTable();
 }
 
+// Box Plot
 function renderBoxPlot() {
-    const container = document.getElementById('svg-container');
-    container.style.display = 'block';
-    const config = getChartConfig();
-    
-    // Group data by category
-    const groups = {};
-    currentData.forEach(d => {
-        const group = d.group || d[Object.keys(d)[0]];
-        const value = d.value || d[Object.keys(d)[1]];
-        if (!groups[group]) groups[group] = [];
-        groups[group].push(value);
-    });
-    
-    // Calculate box plot statistics for each group
-    const boxData = Object.keys(groups).map(key => {
-        const values = groups[key].sort((a, b) => a - b);
-        const q1 = quantile(values, 0.25);
-        const median = quantile(values, 0.5);
-        const q3 = quantile(values, 0.75);
-        const iqr = q3 - q1;
-        const min = Math.max(Math.min(...values), q1 - 1.5 * iqr);
-        const max = Math.min(Math.max(...values), q3 + 1.5 * iqr);
-        const outliers = values.filter(v => v < min || v > max);
-        
-        return { key, min, q1, median, q3, max, outliers };
-    });
-    
-    // SVG dimensions
-    const width = 800;
-    const height = 500;
-    const margin = { top: 60, right: 40, bottom: 60, left: 60 };
-    const plotWidth = width - margin.left - margin.right;
-    const plotHeight = height - margin.top - margin.bottom;
-    
-    // Scales
-    const xScale = (index) => margin.left + (plotWidth / boxData.length) * (index + 0.5);
-    const allValues = boxData.flatMap(d => [d.min, d.max, ...d.outliers]);
-    const yMin = Math.min(...allValues);
-    const yMax = Math.max(...allValues);
-    const yScale = (value) => margin.top + plotHeight - ((value - yMin) / (yMax - yMin)) * plotHeight;
-    
-    // Create SVG
-    let svg = `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="max-width: 100%;">`;
-    
-    // Title
-    if (config.title) {
-        svg += `<text x="${width/2}" y="30" text-anchor="middle" font-size="18" font-weight="bold" fill="${config.textColor}">${config.title}</text>`;
-    }
-    
-    // Y-axis
-    svg += `<line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}" stroke="${config.textColor}" stroke-width="2"/>`;
-    
-    // Y-axis label
-    if (config.yLabel) {
-        svg += `<text x="${margin.left - 40}" y="${height/2}" text-anchor="middle" font-size="14" fill="${config.textColor}" transform="rotate(-90, ${margin.left - 40}, ${height/2})">${config.yLabel}</text>`;
-    }
-    
-    // Y-axis ticks and grid
-    for (let i = 0; i <= 5; i++) {
-        const value = yMin + (yMax - yMin) * (i / 5);
-        const y = yScale(value);
-        
-        // Grid line
-        if (config.showGrid) {
-            svg += `<line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" stroke="${config.gridColor}" stroke-width="1"/>`;
-        }
-        
-        // Tick
-        svg += `<line x1="${margin.left - 5}" y1="${y}" x2="${margin.left}" y2="${y}" stroke="${config.textColor}" stroke-width="2"/>`;
-        svg += `<text x="${margin.left - 10}" y="${y + 5}" text-anchor="end" font-size="12" fill="${config.textColor}">${value.toFixed(1)}</text>`;
-    }
-    
-    // X-axis
-    svg += `<line x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}" stroke="${config.textColor}" stroke-width="2"/>`;
-    
-    // X-axis label
-    if (config.xLabel) {
-        svg += `<text x="${width/2}" y="${height - 10}" text-anchor="middle" font-size="14" fill="${config.textColor}">${config.xLabel}</text>`;
-    }
-    
-    // Draw box plots
-    const boxWidth = Math.min(60, plotWidth / boxData.length * 0.6);
-    
-    boxData.forEach((box, index) => {
-        const x = xScale(index);
-        const color = chartColors[index % chartColors.length];
-        
-        // Whiskers
-        svg += `<line x1="${x}" y1="${yScale(box.min)}" x2="${x}" y2="${yScale(box.q1)}" stroke="${color}" stroke-width="2"/>`;
-        svg += `<line x1="${x}" y1="${yScale(box.q3)}" x2="${x}" y2="${yScale(box.max)}" stroke="${color}" stroke-width="2"/>`;
-        
-        // Whisker caps
-        svg += `<line x1="${x - 10}" y1="${yScale(box.min)}" x2="${x + 10}" y2="${yScale(box.min)}" stroke="${color}" stroke-width="2"/>`;
-        svg += `<line x1="${x - 10}" y1="${yScale(box.max)}" x2="${x + 10}" y2="${yScale(box.max)}" stroke="${color}" stroke-width="2"/>`;
-        
-        // Box
-        const boxHeight = yScale(box.q1) - yScale(box.q3);
-        svg += `<rect x="${x - boxWidth/2}" y="${yScale(box.q3)}" width="${boxWidth}" height="${boxHeight}" fill="${color}" fill-opacity="0.3" stroke="${color}" stroke-width="2"/>`;
-        
-        // Median line
-        svg += `<line x1="${x - boxWidth/2}" y1="${yScale(box.median)}" x2="${x + boxWidth/2}" y2="${yScale(box.median)}" stroke="${color}" stroke-width="3"/>`;
-        
-        // Outliers
-        box.outliers.forEach(outlier => {
-            svg += `<circle cx="${x}" cy="${yScale(outlier)}" r="3" fill="${color}"/>`;
-        });
-        
-        // X-axis label
-        svg += `<text x="${x}" y="${height - margin.bottom + 20}" text-anchor="middle" font-size="12" fill="${config.textColor}">${box.key}</text>`;
-    });
-    
-    svg += '</svg>';
-    container.innerHTML = svg;
-}
-
-// Helper function for quantile calculation
-function quantile(arr, q) {
-    const sorted = arr.slice().sort((a, b) => a - b);
-    const pos = (sorted.length - 1) * q;
-    const base = Math.floor(pos);
-    const rest = pos - base;
-    if (sorted[base + 1] !== undefined) {
-        return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
-    } else {
-        return sorted[base];
-    }
-}
-
-function renderROCCurve() {
     const canvas = document.getElementById('chart-canvas');
     canvas.style.display = 'block';
     const ctx = canvas.getContext('2d');
-    const config = getChartConfig();
     
-    // Group data by model if exists
-    const models = {};
-    currentData.forEach(d => {
-        const model = d.model || 'Model';
-        if (!models[model]) models[model] = { fpr: [], tpr: [] };
-        models[model].fpr.push(d.fpr || d[Object.keys(d)[0]]);
-        models[model].tpr.push(d.tpr || d[Object.keys(d)[1]]);
-    });
-    
-    const datasets = Object.keys(models).map((model, index) => ({
-        label: model,
-        data: models[model].fpr.map((fpr, i) => ({ x: fpr, y: models[model].tpr[i] })),
-        borderColor: chartColors[index % chartColors.length],
-        backgroundColor: chartColors[index % chartColors.length] + '20',
-        borderWidth: 2,
-        tension: 0.1,
-        fill: false
-    }));
-    
-    // Add diagonal reference line
-    datasets.push({
-        label: 'Random (AUC = 0.5)',
-        data: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
-        borderColor: config.textColor,
-        borderDash: [5, 5],
-        borderWidth: 1,
-        fill: false,
-        pointRadius: 0
-    });
-    
-    currentChart = new Chart(ctx, {
-        type: 'line',
-        data: { datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                title: {
-                    display: !!config.title,
-                    text: config.title || 'ROC Curve',
-                    color: config.textColor,
-                    font: { size: 18, weight: 'bold' }
-                },
-                legend: {
-                    display: config.showLegend,
-                    labels: { color: config.textColor }
-                }
-            },
-            scales: {
-                x: {
-                    type: 'linear',
-                    title: {
-                        display: true,
-                        text: config.xLabel || 'False Positive Rate',
-                        color: config.textColor
-                    },
-                    ticks: { color: config.textColor },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    },
-                    min: 0,
-                    max: 1
-                },
-                y: {
-                    type: 'linear',
-                    title: {
-                        display: true,
-                        text: config.yLabel || 'True Positive Rate',
-                        color: config.textColor
-                    },
-                    ticks: { color: config.textColor },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    },
-                    min: 0,
-                    max: 1
-                }
-            }
-        }
-    });
-}
-
-function renderPRCurve() {
-    const canvas = document.getElementById('chart-canvas');
-    canvas.style.display = 'block';
-    const ctx = canvas.getContext('2d');
-    const config = getChartConfig();
-    
-    // Group data by model if exists
-    const models = {};
-    currentData.forEach(d => {
-        const model = d.model || 'Model';
-        if (!models[model]) models[model] = { recall: [], precision: [] };
-        models[model].recall.push(d.recall || d[Object.keys(d)[0]]);
-        models[model].precision.push(d.precision || d[Object.keys(d)[1]]);
-    });
-    
-    const datasets = Object.keys(models).map((model, index) => ({
-        label: model,
-        data: models[model].recall.map((recall, i) => ({ x: recall, y: models[model].precision[i] })),
-        borderColor: chartColors[index % chartColors.length],
-        backgroundColor: chartColors[index % chartColors.length] + '20',
-        borderWidth: 2,
-        tension: 0.1,
-        fill: false
-    }));
-    
-    currentChart = new Chart(ctx, {
-        type: 'line',
-        data: { datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                title: {
-                    display: !!config.title,
-                    text: config.title || 'Precision-Recall Curve',
-                    color: config.textColor,
-                    font: { size: 18, weight: 'bold' }
-                },
-                legend: {
-                    display: config.showLegend,
-                    labels: { color: config.textColor }
-                }
-            },
-            scales: {
-                x: {
-                    type: 'linear',
-                    title: {
-                        display: true,
-                        text: config.xLabel || 'Recall',
-                        color: config.textColor
-                    },
-                    ticks: { color: config.textColor },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    },
-                    min: 0,
-                    max: 1
-                },
-                y: {
-                    type: 'linear',
-                    title: {
-                        display: true,
-                        text: config.yLabel || 'Precision',
-                        color: config.textColor
-                    },
-                    ticks: { color: config.textColor },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    },
-                    min: 0,
-                    max: 1
-                }
-            }
-        }
-    });
-}
-
-function renderAblationStudy() {
-    const canvas = document.getElementById('chart-canvas');
-    canvas.style.display = 'block';
-    const ctx = canvas.getContext('2d');
-    const config = getChartConfig();
-    
-    const labels = currentData.map(d => d.component || d[Object.keys(d)[0]]);
-    const datasets = [];
-    
-    const keys = Object.keys(currentData[0]).filter(k => k !== 'component' && k !== Object.keys(currentData[0])[0]);
-    
-    keys.forEach((key, index) => {
-        datasets.push({
-            label: key,
-            data: currentData.map(d => d[key]),
-            backgroundColor: chartColors[index % chartColors.length],
-            borderColor: chartColors[index % chartColors.length],
-            borderWidth: 2
-        });
-    });
+    const groups = Object.keys(currentData);
     
     currentChart = new Chart(ctx, {
         type: 'bar',
-        data: { labels, datasets },
+        data: { 
+            labels: groups,
+            datasets: [{
+                label: 'Mean Value',
+                data: groups.map(g => {
+                    const vals = currentData[g];
+                    return vals.reduce((a, b) => a + b, 0) / vals.length;
+                }),
+                backgroundColor: groups.map((_, i) => getColor(i)),
+                borderWidth: getStyleConfig().barBorderWidth
+            }]
+        },
+        options: getChartOptions()
+    });
+}
+
+// ROC Curve
+function renderROC() {
+    const canvas = document.getElementById('chart-canvas');
+    canvas.style.display = 'block';
+    const ctx = canvas.getContext('2d');
+    
+    const fpr = currentData.data.map(d => d[currentData.headers[0]]);
+    const tpr = currentData.data.map(d => d[currentData.headers[1]]);
+    
+    let auc = 0;
+    for (let i = 1; i < fpr.length; i++) {
+        auc += (fpr[i] - fpr[i-1]) * (tpr[i] + tpr[i-1]) / 2;
+    }
+    
+    currentChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: fpr,
+            datasets: [{
+                label: `ROC Curve (AUC = ${auc.toFixed(3)})`,
+                data: tpr,
+                borderColor: getColor(0),
+                backgroundColor: getColor(0) + '20',
+                fill: true,
+                borderWidth: getStyleConfig().lineWidth,
+                pointRadius: getStyleConfig().pointRadius
+            }, {
+                label: 'Random Classifier',
+                data: [0, 1],
+                borderColor: '#999',
+                borderDash: [5, 5],
+                borderWidth: 1,
+                pointRadius: 0
+            }]
+        },
         options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                title: {
-                    display: !!config.title,
-                    text: config.title || 'Ablation Study',
-                    color: config.textColor,
-                    font: { size: 18, weight: 'bold' }
-                },
-                legend: {
-                    display: config.showLegend,
-                    labels: { color: config.textColor }
-                }
-            },
+            ...getChartOptions(),
             scales: {
-                x: {
-                    title: {
-                        display: !!config.xLabel,
-                        text: config.xLabel || 'Component',
-                        color: config.textColor
-                    },
-                    ticks: { 
-                        color: config.textColor,
-                        maxRotation: 45,
-                        minRotation: 45
-                    },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    }
-                },
-                y: {
-                    title: {
-                        display: !!config.yLabel,
-                        text: config.yLabel || 'Score',
-                        color: config.textColor
-                    },
-                    ticks: { color: config.textColor },
-                    grid: {
-                        display: config.showGrid,
-                        color: config.gridColor
-                    },
-                    beginAtZero: true
-                }
+                x: { title: { display: true, text: 'False Positive Rate' }, min: 0, max: 1 },
+                y: { title: { display: true, text: 'True Positive Rate' }, min: 0, max: 1 }
             }
         }
     });
 }
 
-function createGradient(ctx, color) {
-    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, color);
-    gradient.addColorStop(1, color + '00');
-    return gradient;
-}
-
-// Chart style functions
-function setChartStyle(style) {
-    currentStyle = style;
-    document.querySelectorAll('.style-option').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[data-style="${style}"]`).classList.add('active');
+// Precision-Recall Curve
+function renderPR() {
+    const canvas = document.getElementById('chart-canvas');
+    canvas.style.display = 'block';
+    const ctx = canvas.getContext('2d');
     
-    if (currentData) renderVisualization();
-}
-
-// Color functions
-function applyColors() {
-    document.querySelectorAll('.color-input').forEach(input => {
-        const index = parseInt(input.dataset.index);
-        chartColors[index] = input.value;
+    const recall = currentData.data.map(d => d[currentData.headers[0]]);
+    const precision = currentData.data.map(d => d[currentData.headers[1]]);
+    
+    currentChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: recall,
+            datasets: [{
+                label: 'Precision-Recall Curve',
+                data: precision,
+                borderColor: getColor(2),
+                backgroundColor: getColor(2) + '20',
+                fill: true,
+                borderWidth: getStyleConfig().lineWidth,
+                pointRadius: getStyleConfig().pointRadius
+            }]
+        },
+        options: {
+            ...getChartOptions(),
+            scales: {
+                x: { title: { display: true, text: 'Recall' }, min: 0, max: 1 },
+                y: { title: { display: true, text: 'Precision' }, min: 0, max: 1 }
+            }
+        }
     });
-    
-    if (currentData) renderVisualization();
 }
 
-function resetColors() {
-    const defaultColors = ['#667eea', '#764ba2', '#10b981', '#f59e0b'];
-    chartColors = [...defaultColors];
+// Ablation Study
+function renderAblation() {
+    const canvas = document.getElementById('chart-canvas');
+    canvas.style.display = 'block';
+    const ctx = canvas.getContext('2d');
     
-    document.querySelectorAll('.color-input').forEach((input, index) => {
-        input.value = defaultColors[index];
+    const labels = currentData.data.map(d => d[currentData.headers[0]]);
+    const values = currentData.data.map(d => d[currentData.headers[1]]);
+    const colors = values.map((v, i) => i === 0 ? getColor(2) : getColor(0));
+    
+    currentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Performance',
+                data: values,
+                backgroundColor: colors,
+                borderWidth: getStyleConfig().barBorderWidth
+            }]
+        },
+        options: getChartOptions()
     });
-    
-    if (currentData) renderVisualization();
 }
 
 // Export functions
 function exportPNG() {
-    const canvas = document.getElementById('chart-canvas');
-    const svg = document.getElementById('svg-container');
-    const messageDiv = document.getElementById('export-message');
+    const msgEl = document.getElementById('export-message');
     
-    if (canvas.style.display !== 'none') {
-        const link = document.createElement('a');
-        link.download = 'chart.png';
-        link.href = canvas.toDataURL();
-        link.click();
-        messageDiv.textContent = '✓ PNG exported successfully';
-        messageDiv.style.color = 'var(--success)';
-    } else if (svg.innerHTML) {
-        // For SVG-based visualizations, convert to canvas first
-        const svgElement = svg.querySelector('svg');
-        const svgString = new XMLSerializer().serializeToString(svgElement);
-        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(svgBlob);
-        
-        const img = new Image();
-        img.onload = () => {
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = svgElement.viewBox.baseVal.width || 800;
-            tempCanvas.height = svgElement.viewBox.baseVal.height || 500;
-            const ctx = tempCanvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            
-            const link = document.createElement('a');
-            link.download = 'chart.png';
-            link.href = tempCanvas.toDataURL();
-            link.click();
-            
-            URL.revokeObjectURL(url);
-            messageDiv.textContent = '✓ PNG exported successfully';
-            messageDiv.style.color = 'var(--success)';
-        };
-        img.src = url;
-    } else {
-        messageDiv.textContent = '⚠ Table view cannot be exported as PNG';
-        messageDiv.style.color = 'var(--error)';
-    }
-    
-    setTimeout(() => { messageDiv.textContent = ''; }, 3000);
-}
-
-function exportSVG() {
-    const svg = document.getElementById('svg-container');
-    const messageDiv = document.getElementById('export-message');
-    
-    if (svg.innerHTML) {
-        const svgElement = svg.querySelector('svg');
-        const svgString = new XMLSerializer().serializeToString(svgElement);
-        const blob = new Blob([svgString], { type: 'image/svg+xml' });
-        const link = document.createElement('a');
-        link.download = 'chart.svg';
-        link.href = URL.createObjectURL(blob);
-        link.click();
-        messageDiv.textContent = '✓ SVG exported successfully';
-        messageDiv.style.color = 'var(--success)';
-    } else {
-        messageDiv.textContent = '⚠ Current visualization does not support SVG export';
-        messageDiv.style.color = 'var(--error)';
-    }
-    
-    setTimeout(() => { messageDiv.textContent = ''; }, 3000);
-}
-
-function exportCSV() {
-    const messageDiv = document.getElementById('export-message');
-    
-    if (!currentData) {
-        messageDiv.textContent = '⚠ No data to export';
-        messageDiv.style.color = 'var(--error)';
-        setTimeout(() => { messageDiv.textContent = ''; }, 3000);
+    if (currentViz === 'table') {
+        msgEl.textContent = 'PNG export not available for tables. Use CSV export.';
+        msgEl.style.color = 'var(--error)';
+        setTimeout(() => msgEl.textContent = '', 3000);
         return;
     }
     
-    const headers = Object.keys(currentData[0]);
-    let csv = headers.join(',') + '\n';
+    try {
+        const canvas = document.getElementById('chart-canvas');
+        canvas.toBlob((blob) => {
+            if (!blob) {
+                msgEl.textContent = 'Failed to generate PNG';
+                msgEl.style.color = 'var(--error)';
+                setTimeout(() => msgEl.textContent = '', 3000);
+                return;
+            }
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `${currentViz}_chart_${Date.now()}.png`;
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            
+            msgEl.textContent = '✓ PNG downloaded successfully!';
+            msgEl.style.color = 'var(--success)';
+            setTimeout(() => msgEl.textContent = '', 3000);
+        }, 'image/png');
+    } catch (e) {
+        msgEl.textContent = 'Error exporting PNG: ' + e.message;
+        msgEl.style.color = 'var(--error)';
+        setTimeout(() => msgEl.textContent = '', 3000);
+    }
+}
+
+function exportSVG() {
+    const msgEl = document.getElementById('export-message');
+    msgEl.textContent = 'SVG export coming soon. Use PNG for now.';
+    msgEl.style.color = 'var(--warning)';
+    setTimeout(() => msgEl.textContent = '', 3000);
+}
+
+function exportCSV() {
+    const msgEl = document.getElementById('export-message');
     
-    currentData.forEach(row => {
-        csv += headers.map(header => row[header]).join(',') + '\n';
-    });
+    if (!currentData) {
+        msgEl.textContent = 'No data to export';
+        msgEl.style.color = 'var(--error)';
+        setTimeout(() => msgEl.textContent = '', 3000);
+        return;
+    }
     
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.download = 'data.csv';
-    link.href = URL.createObjectURL(blob);
-    link.click();
-    
-    messageDiv.textContent = '✓ CSV exported successfully';
-    messageDiv.style.color = 'var(--success)';
-    setTimeout(() => { messageDiv.textContent = ''; }, 3000);
+    try {
+        let csv = '';
+        
+        if (currentData.headers && currentData.data) {
+            csv = currentData.headers.join(',') + '\n';
+            currentData.data.forEach(row => {
+                csv += currentData.headers.map(h => {
+                    const val = row[h];
+                    if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) {
+                        return '"' + val.replace(/"/g, '""') + '"';
+                    }
+                    return val;
+                }).join(',') + '\n';
+            });
+        } else {
+            csv = JSON.stringify(currentData, null, 2);
+        }
+        
+        if (!csv) {
+            msgEl.textContent = 'No data to export';
+            msgEl.style.color = 'var(--error)';
+            setTimeout(() => msgEl.textContent = '', 3000);
+            return;
+        }
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `${currentViz}_data_${Date.now()}.csv`;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        
+        msgEl.textContent = '✓ CSV downloaded successfully!';
+        msgEl.style.color = 'var(--success)';
+        setTimeout(() => msgEl.textContent = '', 3000);
+    } catch (e) {
+        msgEl.textContent = 'Error exporting CSV: ' + e.message;
+        msgEl.style.color = 'var(--error)';
+        setTimeout(() => msgEl.textContent = '', 3000);
+    }
 }
