@@ -197,9 +197,16 @@ function getColor(index) {
 
 // Main rendering dispatcher
 function renderVisualization() {
-    document.getElementById('chart-canvas').style.display = 'none';
-    document.getElementById('svg-container').innerHTML = '';
-    document.getElementById('table-container').innerHTML = '';
+    const canvas = document.getElementById('chart-canvas');
+    const svgContainer = document.getElementById('svg-container');
+    const tableContainer = document.getElementById('table-container');
+    
+    // Hide all containers first
+    canvas.style.display = 'none';
+    svgContainer.innerHTML = '';
+    svgContainer.style.display = 'none';
+    tableContainer.innerHTML = '';
+    tableContainer.style.display = 'none';
     
     if (currentChart) {
         currentChart.destroy();
@@ -393,6 +400,8 @@ function renderScatterPlot() {
 // Table - IMPROVED WITH SORTING ARROWS
 function renderTable() {
     const container = document.getElementById('table-container');
+    container.style.display = 'flex';
+    
     let html = '<div style="display: flex; justify-content: center; width: 100%;"><table id="table-display"><thead><tr>';
     
     currentData.headers.forEach(h => {
