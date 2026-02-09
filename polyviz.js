@@ -393,7 +393,7 @@ function renderScatterPlot() {
 // Table - IMPROVED WITH SORTING ARROWS
 function renderTable() {
     const container = document.getElementById('table-container');
-    let html = '<table id="table-display"><thead><tr>';
+    let html = '<div style="display: flex; justify-content: center; width: 100%;"><table id="table-display"><thead><tr>';
     
     currentData.headers.forEach(h => {
         const isSorted = sortColumn === h;
@@ -416,7 +416,7 @@ function renderTable() {
         html += '</tr>';
     });
     
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     container.innerHTML = html;
 }
 
