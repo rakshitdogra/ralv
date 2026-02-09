@@ -56,8 +56,6 @@ ResNet-50,0.923,0.918,0.925,0.921
 VGG-16,0.891,0.885,0.893,0.889
 EfficientNet,0.945,0.942,0.947,0.944`,
     
-    box: `{"Group A":[23,25,28,29,31,33,35,38,40,42],"Group B":[18,22,24,26,28,30,32,35,38,41],"Group C":[28,30,32,35,37,39,41,43,45,48]}`,
-    
     roc: `FPR,TPR
 0.0,0.0
 0.05,0.45
@@ -124,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load sample data
 function loadSampleData() {
     document.getElementById('data-input').value = sampleData[currentViz] || '';
-    document.getElementById('data-format').value = currentViz === 'box' ? 'json' : 'csv';
+    document.getElementById('data-format').value = 'csv';
     loadData();
 }
 
@@ -213,7 +211,6 @@ function renderVisualization() {
         case 'bar': renderBarChart(); break;
         case 'scatter': renderScatterPlot(); break;
         case 'table': renderTable(); break;
-        case 'box': renderBoxPlot(); break;
         case 'roc': renderROC(); break;
         case 'pr': renderPR(); break;
         case 'ablation': renderAblation(); break;
@@ -443,32 +440,6 @@ function sortTable(column) {
         return sortDirection === 'asc' ? comparison : -comparison;
     });
     renderTable();
-}
-
-// Box Plot
-function renderBoxPlot() {
-    const canvas = document.getElementById('chart-canvas');
-    canvas.style.display = 'block';
-    const ctx = canvas.getContext('2d');
-    
-    const groups = Object.keys(currentData);
-    
-    currentChart = new Chart(ctx, {
-        type: 'bar',
-        data: { 
-            labels: groups,
-            datasets: [{
-                label: 'Mean Value',
-                data: groups.map(g => {
-                    const vals = currentData[g];
-                    return vals.reduce((a, b) => a + b, 0) / vals.length;
-                }),
-                backgroundColor: groups.map((_, i) => getColor(i)),
-                borderWidth: getStyleConfig().barBorderWidth
-            }]
-        },
-        options: getChartOptions()
-    });
 }
 
 // ROC Curve
