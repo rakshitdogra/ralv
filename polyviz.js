@@ -5,6 +5,8 @@ let currentChart = null;
 let currentStyle = 'minimal';
 let customColors = ['#667eea', '#764ba2', '#10b981', '#f59e0b', '#9c27b0', '#00bcd4', '#795548', '#607d8b'];
 let useGradient = false;
+let sortColumn = null;
+let sortDirection = 'asc';
 
 // Theme Toggle
 const themeToggle = document.getElementById('themeToggle');
@@ -90,6 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.viz-button').forEach(b => b.classList.remove('active'));
             e.currentTarget.classList.add('active');
             currentViz = e.currentTarget.dataset.viz;
+            sortColumn = null;
+            sortDirection = 'asc';
             loadSampleData();
         });
     });
@@ -255,9 +259,9 @@ function getStyleConfig() {
     return styles[currentStyle];
 }
 
-// Get chart options
+// Get chart options - FIXED THEME DETECTION
 function getChartOptions() {
-    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const textColor = isDark ? '#e0e0e0' : '#222';
     const gridColor = isDark ? '#333' : '#e0e0e0';
     
@@ -267,23 +271,15 @@ function getChartOptions() {
         plugins: {
             title: {
                 display: true,
-                text: document.getElementById('chart-title').value,
-                font: { 
-                    size: currentStyle === 'bold' ? 18 : 16,
-                    family: 'Inter, sans-serif',
-                    weight: currentStyle === 'bold' ? 'bold' : '600' 
-                },
+                text: document.getElementById('chart-title').value || 'Chart',
                 color: textColor,
-                padding: 20
+                font: { size: 16, weight: '600' }
             },
             legend: {
                 display: document.getElementById('show-legend').checked,
-                position: 'top',
-                labels: {
-                    font: { size: 12, family: 'Inter, sans-serif' },
+                labels: { 
                     color: textColor,
-                    boxWidth: 12,
-                    padding: 15
+                    font: { size: 12 }
                 }
             }
         },
@@ -291,34 +287,28 @@ function getChartOptions() {
             x: {
                 title: {
                     display: true,
-                    text: document.getElementById('x-label').value,
-                    font: { size: 13, family: 'Inter, sans-serif', weight: '500' },
-                    color: textColor
+                    text: document.getElementById('x-label').value || 'X-Axis',
+                    color: textColor,
+                    font: { size: 14, weight: '500' }
                 },
-                grid: {
+                grid: { 
                     display: document.getElementById('show-grid').checked,
                     color: gridColor
                 },
-                ticks: {
-                    font: { size: 11, family: 'Inter, sans-serif' },
-                    color: textColor
-                }
+                ticks: { color: textColor }
             },
             y: {
                 title: {
                     display: true,
-                    text: document.getElementById('y-label').value,
-                    font: { size: 13, family: 'Inter, sans-serif', weight: '500' },
-                    color: textColor
+                    text: document.getElementById('y-label').value || 'Y-Axis',
+                    color: textColor,
+                    font: { size: 14, weight: '500' }
                 },
-                grid: {
+                grid: { 
                     display: document.getElementById('show-grid').checked,
                     color: gridColor
                 },
-                ticks: {
-                    font: { size: 11, family: 'Inter, sans-serif' },
-                    color: textColor
-                }
+                ticks: { color: textColor }
             }
         }
     };
@@ -332,24 +322,15 @@ function renderLineChart() {
     
     const labels = currentData.data.map(d => d[currentData.headers[0]]);
     const datasets = currentData.headers.slice(1).map((header, idx) => {
-        const baseColor = getColor(idx);
+        const color = getColor(idx);
         return {
             label: header,
             data: currentData.data.map(d => d[header]),
-            borderColor: baseColor,
-            backgroundColor: useGradient ? function(context) {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea) return baseColor + '40';
-                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                gradient.addColorStop(0, baseColor + '10');
-                gradient.addColorStop(1, baseColor + '80');
-                return gradient;
-            } : 'transparent',
+            borderColor: color,
+            backgroundColor: useGradient ? color + '40' : 'transparent',
             fill: useGradient,
             borderWidth: getStyleConfig().lineWidth,
             pointRadius: getStyleConfig().pointRadius,
-            pointBackgroundColor: baseColor,
             tension: getStyleConfig().tension
         };
     });
@@ -368,23 +349,12 @@ function renderBarChart() {
     const ctx = canvas.getContext('2d');
     
     const labels = currentData.data.map(d => d[currentData.headers[0]]);
-    const datasets = currentData.headers.slice(1).map((header, idx) => {
-        const baseColor = getColor(idx);
-        return {
-            label: header,
-            data: currentData.data.map(d => d[header]),
-            backgroundColor: useGradient ? function(context) {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea) return baseColor;
-                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                gradient.addColorStop(0, baseColor + '80');
-                gradient.addColorStop(1, baseColor);
-                return gradient;
-            } : baseColor,
-            borderWidth: getStyleConfig().barBorderWidth
-        };
-    });
+    const datasets = currentData.headers.slice(1).map((header, idx) => ({
+        label: header,
+        data: currentData.data.map(d => d[header]),
+        backgroundColor: getColor(idx),
+        borderWidth: getStyleConfig().barBorderWidth
+    }));
     
     currentChart = new Chart(ctx, {
         type: 'bar',
@@ -399,16 +369,22 @@ function renderScatterPlot() {
     canvas.style.display = 'block';
     const ctx = canvas.getContext('2d');
     
-    const classes = [...new Set(currentData.data.map(d => d[currentData.headers[2]]))];
-    const datasets = classes.map((cls, idx) => ({
-        label: cls,
-        data: currentData.data
-            .filter(d => d[currentData.headers[2]] === cls)
-            .map(d => ({ x: d[currentData.headers[0]], y: d[currentData.headers[1]] })),
-        backgroundColor: getColor(idx),
-        borderWidth: getStyleConfig().scatterBorderWidth,
-        pointRadius: getStyleConfig().scatterRadius
-    }));
+    const xKey = currentData.headers[0];
+    const yKey = currentData.headers[1];
+    const classKey = currentData.headers[2];
+    
+    const classes = [...new Set(currentData.data.map(d => d[classKey]))];
+    const datasets = classes.map((cls, idx) => {
+        const points = currentData.data.filter(d => d[classKey] === cls);
+        return {
+            label: cls,
+            data: points.map(d => ({ x: d[xKey], y: d[yKey] })),
+            backgroundColor: getColor(idx),
+            borderColor: getColor(idx),
+            borderWidth: getStyleConfig().scatterBorderWidth,
+            pointRadius: getStyleConfig().scatterRadius
+        };
+    });
     
     currentChart = new Chart(ctx, {
         type: 'scatter',
@@ -417,13 +393,21 @@ function renderScatterPlot() {
     });
 }
 
-// Table
+// Table - IMPROVED WITH SORTING ARROWS
 function renderTable() {
     const container = document.getElementById('table-container');
     let html = '<table id="table-display"><thead><tr>';
     
     currentData.headers.forEach(h => {
-        html += `<th onclick="sortTable('${h}')">${h} ▲▼</th>`;
+        const isSorted = sortColumn === h;
+        const sortClass = isSorted ? (sortDirection === 'asc' ? 'sort-asc' : 'sort-desc') : '';
+        html += `<th class="${sortClass}" onclick="sortTable('${h}')">
+            ${h}
+            <span class="sort-arrows">
+                <span class="arrow-up">▲</span>
+                <span class="arrow-down">▼</span>
+            </span>
+        </th>`;
     });
     html += '</tr></thead><tbody>';
     
@@ -440,12 +424,23 @@ function renderTable() {
 }
 
 function sortTable(column) {
+    // Toggle sort direction if same column, otherwise reset to ascending
+    if (sortColumn === column) {
+        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortColumn = column;
+        sortDirection = 'asc';
+    }
+    
     const isNumeric = !isNaN(currentData.data[0][column]);
     currentData.data.sort((a, b) => {
+        let comparison;
         if (isNumeric) {
-            return a[column] - b[column];
+            comparison = a[column] - b[column];
+        } else {
+            comparison = String(a[column]).localeCompare(String(b[column]));
         }
-        return String(a[column]).localeCompare(String(b[column]));
+        return sortDirection === 'asc' ? comparison : -comparison;
     });
     renderTable();
 }
@@ -490,6 +485,10 @@ function renderROC() {
         auc += (fpr[i] - fpr[i-1]) * (tpr[i] + tpr[i-1]) / 2;
     }
     
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#e0e0e0' : '#222';
+    const gridColor = isDark ? '#333' : '#e0e0e0';
+    
     currentChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -505,7 +504,7 @@ function renderROC() {
             }, {
                 label: 'Random Classifier',
                 data: [0, 1],
-                borderColor: '#999',
+                borderColor: isDark ? '#999' : '#666',
                 borderDash: [5, 5],
                 borderWidth: 1,
                 pointRadius: 0
@@ -514,8 +513,20 @@ function renderROC() {
         options: {
             ...getChartOptions(),
             scales: {
-                x: { title: { display: true, text: 'False Positive Rate' }, min: 0, max: 1 },
-                y: { title: { display: true, text: 'True Positive Rate' }, min: 0, max: 1 }
+                x: { 
+                    title: { display: true, text: 'False Positive Rate', color: textColor }, 
+                    min: 0, 
+                    max: 1,
+                    grid: { color: gridColor },
+                    ticks: { color: textColor }
+                },
+                y: { 
+                    title: { display: true, text: 'True Positive Rate', color: textColor }, 
+                    min: 0, 
+                    max: 1,
+                    grid: { color: gridColor },
+                    ticks: { color: textColor }
+                }
             }
         }
     });
@@ -529,6 +540,10 @@ function renderPR() {
     
     const recall = currentData.data.map(d => d[currentData.headers[0]]);
     const precision = currentData.data.map(d => d[currentData.headers[1]]);
+    
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#e0e0e0' : '#222';
+    const gridColor = isDark ? '#333' : '#e0e0e0';
     
     currentChart = new Chart(ctx, {
         type: 'line',
@@ -547,8 +562,20 @@ function renderPR() {
         options: {
             ...getChartOptions(),
             scales: {
-                x: { title: { display: true, text: 'Recall' }, min: 0, max: 1 },
-                y: { title: { display: true, text: 'Precision' }, min: 0, max: 1 }
+                x: { 
+                    title: { display: true, text: 'Recall', color: textColor }, 
+                    min: 0, 
+                    max: 1,
+                    grid: { color: gridColor },
+                    ticks: { color: textColor }
+                },
+                y: { 
+                    title: { display: true, text: 'Precision', color: textColor }, 
+                    min: 0, 
+                    max: 1,
+                    grid: { color: gridColor },
+                    ticks: { color: textColor }
+                }
             }
         }
     });
