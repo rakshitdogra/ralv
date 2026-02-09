@@ -349,6 +349,28 @@
             border-color: var(--primary);
         }
         
+        /* Canvas and container visibility */
+        #chart-canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        #chart-canvas[style*="display: none"] {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            visibility: hidden !important;
+            position: absolute !important;
+        }
+        
+        #svg-container {
+            width: 100%;
+        }
+        
+        #svg-container[style*="display: none"] {
+            display: none !important;
+        }
+        
         /* Table styles - ABSOLUTE CENTERING */
         #table-container {
             display: flex !important;
