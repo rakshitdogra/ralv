@@ -115,7 +115,7 @@
                 <div id="canvas-container" style="padding: 2rem; min-height: 500px; display: flex; align-items: center; justify-content: center;">
                     <canvas id="chart-canvas"></canvas>
                     <div id="svg-container"></div>
-                    <div id="table-container" style="width: 100%; overflow-x: auto;"></div>
+                    <div id="table-container"></div>
                 </div>
             </div>
 
@@ -349,22 +349,34 @@
             border-color: var(--primary);
         }
         
-        /* Table styles - PROPER CENTERING AND ALIGNMENT */
+        /* Table styles - ABSOLUTE CENTERING */
         #table-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            width: 100%;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            width: 100% !important;
+            padding: 0 !important;
+            box-sizing: border-box;
+            overflow-x: auto;
         }
         
         #table-display {
             border-collapse: collapse;
             font-size: 0.875rem;
-            width: auto;
+            width: auto !important;
             min-width: 60%;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            max-width: 95%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             overflow: hidden;
+            margin: 0 auto !important;
+            position: relative;
+            left: 0 !important;
+            right: 0 !important;
+        }
+        
+        [data-theme="dark"] #table-display {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
         
         #table-display th,
