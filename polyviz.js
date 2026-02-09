@@ -201,17 +201,24 @@ function renderVisualization() {
     const svgContainer = document.getElementById('svg-container');
     const tableContainer = document.getElementById('table-container');
     
-    // Hide all containers first
-    canvas.style.display = 'none';
-    svgContainer.innerHTML = '';
-    svgContainer.style.display = 'none';
-    tableContainer.innerHTML = '';
-    tableContainer.style.display = 'none';
-    
+    // Destroy chart first
     if (currentChart) {
         currentChart.destroy();
         currentChart = null;
     }
+    
+    // Aggressively hide all containers
+    canvas.style.display = 'none';
+    canvas.style.visibility = 'hidden';
+    canvas.style.width = '0';
+    canvas.style.height = '0';
+    canvas.style.position = 'absolute';
+    
+    svgContainer.innerHTML = '';
+    svgContainer.style.display = 'none';
+    
+    tableContainer.innerHTML = '';
+    tableContainer.style.display = 'none';
     
     switch (currentViz) {
         case 'line': renderLineChart(); break;
@@ -322,6 +329,10 @@ function getChartOptions() {
 function renderLineChart() {
     const canvas = document.getElementById('chart-canvas');
     canvas.style.display = 'block';
+    canvas.style.visibility = 'visible';
+    canvas.style.width = '';
+    canvas.style.height = '';
+    canvas.style.position = 'static';
     const ctx = canvas.getContext('2d');
     
     const labels = currentData.data.map(d => d[currentData.headers[0]]);
@@ -350,6 +361,10 @@ function renderLineChart() {
 function renderBarChart() {
     const canvas = document.getElementById('chart-canvas');
     canvas.style.display = 'block';
+    canvas.style.visibility = 'visible';
+    canvas.style.width = '';
+    canvas.style.height = '';
+    canvas.style.position = 'static';
     const ctx = canvas.getContext('2d');
     
     const labels = currentData.data.map(d => d[currentData.headers[0]]);
@@ -371,6 +386,10 @@ function renderBarChart() {
 function renderScatterPlot() {
     const canvas = document.getElementById('chart-canvas');
     canvas.style.display = 'block';
+    canvas.style.visibility = 'visible';
+    canvas.style.width = '';
+    canvas.style.height = '';
+    canvas.style.position = 'static';
     const ctx = canvas.getContext('2d');
     
     const xKey = currentData.headers[0];
@@ -455,6 +474,10 @@ function sortTable(column) {
 function renderROC() {
     const canvas = document.getElementById('chart-canvas');
     canvas.style.display = 'block';
+    canvas.style.visibility = 'visible';
+    canvas.style.width = '';
+    canvas.style.height = '';
+    canvas.style.position = 'static';
     const ctx = canvas.getContext('2d');
     
     const fpr = currentData.data.map(d => d[currentData.headers[0]]);
@@ -516,6 +539,10 @@ function renderROC() {
 function renderPR() {
     const canvas = document.getElementById('chart-canvas');
     canvas.style.display = 'block';
+    canvas.style.visibility = 'visible';
+    canvas.style.width = '';
+    canvas.style.height = '';
+    canvas.style.position = 'static';
     const ctx = canvas.getContext('2d');
     
     const recall = currentData.data.map(d => d[currentData.headers[0]]);
@@ -565,6 +592,10 @@ function renderPR() {
 function renderAblation() {
     const canvas = document.getElementById('chart-canvas');
     canvas.style.display = 'block';
+    canvas.style.visibility = 'visible';
+    canvas.style.width = '';
+    canvas.style.height = '';
+    canvas.style.position = 'static';
     const ctx = canvas.getContext('2d');
     
     const labels = currentData.data.map(d => d[currentData.headers[0]]);
